@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Palabras Niños">
+    <meta name="theme-color" content="#667eea">
+    <title>Juego de Palabras para Niños</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="stylesheet" href="styles.css">
+    <script src="scenarios.js"></script>
+    <script src="editor.js"></script>
+</head>
+<body>
+    <div class="game-container">
+        <!-- Header -->
+        <header class="game-header">
+            <h1>Arrastra la palabra correcta!</h1>
+            <div class="level-info">
+                <span class="level">Nivel: <span id="current-level">1</span></span>
+                <span class="score">Puntos: <span id="current-score">0</span></span>
+            </div>
+        </header>
+
+        <!-- Game Area -->
+        <main class="game-area">
+            <!-- Words Section -->
+            <section class="words-section">
+                <h2>🔤 Arrastra las palabras</h2>
+                <div class="words-container" id="words-container">
+                    <!-- Words will be generated here -->
+                </div>
+            </section>
+
+            <!-- Scenario Section -->
+            <section class="scenario-section">
+                <h2 id="scenario-title">🏠 La Casa</h2>
+                <div class="scenario-container" id="scenario-container">
+                    <div class="scenario-background" id="scenario-background">
+                        <!-- TODO: Drop zones eliminadas - crear nuevas desde cero -->
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Controls -->
+        <div class="controls">
+            <button id="restart-btn" class="btn btn-restart">🔄 Reiniciar</button>
+            <button id="next-level-btn" class="btn btn-next" style="display: none;">➡️ Siguiente Nivel</button>
+        </div>
+
+        <!-- Success Modal -->
+        <div class="modal" id="success-modal" style="display: none;">
+            <div class="modal-content">
+                <h2>🎉 ¡Muy bien!</h2>
+                <p id="success-message">¡Has completado el nivel!</p>
+                <button id="continue-btn" class="btn btn-primary">Continuar</button>
+            </div>
+        </div>
+
+        <!-- Celebration -->
+        <div class="celebration" id="celebration"></div>
+
+        <!-- Debug Panel -->
+        <div class="debug-panel" id="debug-panel" style="display: none;">
+            <div class="debug-header">
+                <h3>🔧 Panel de Debug</h3>
+                <button id="debug-close" class="debug-close">×</button>
+            </div>
+            <div class="debug-content">
+                <div class="debug-section">
+                    <h4>Saltar a Nivel:</h4>
+                    <div class="debug-level-buttons">
+                        <button class="debug-level-btn" data-level="1">Nivel 1</button>
+                        <button class="debug-level-btn" data-level="2">Nivel 2</button>
+                        <button class="debug-level-btn" data-level="3">Nivel 3</button>
+                        <button class="debug-level-btn" data-level="4">Nivel 4</button>
+                        <button class="debug-level-btn" data-level="5">Nivel 5</button>
+                    </div>
+                </div>
+                <div class="debug-section">
+                    <h4>Opciones de Debug:</h4>
+                    <label class="debug-checkbox">
+                        <input type="checkbox" id="debug-show-dropzones"> Mostrar DropZones
+                    </label>
+                    <label class="debug-checkbox">
+                        <input type="checkbox" id="debug-show-positions"> Mostrar Posiciones
+                    </label>
+                </div>
+                <div class="debug-section">
+                    <h4>Nivel Actual:</h4>
+                    <div id="debug-level-info">
+                        <p><strong>Nivel:</strong> <span id="debug-current-level">1</span></p>
+                        <p><strong>Escenario:</strong> <span id="debug-current-scenario">Casa</span></p>
+                        <p><strong>Elementos:</strong> <span id="debug-current-elements">2</span></p>
+                    </div>
+                </div>
+                <div class="debug-section">
+                    <h4>Elementos Disponibles:</h4>
+                    <div id="debug-elements-list"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Debug Toggle Button -->
+        <button id="debug-toggle" class="debug-toggle">🔧</button>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html> 
