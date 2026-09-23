@@ -1,118 +1,77 @@
-# 🎮 Juego de Palabras para Niños
+# 👧✨ Emma Aprende (Global Reading & Speech Game)
 
-Un juego educativo interactivo diseñado especialmente para niños de 2 años. El objetivo es ayudar a los pequeños a aprender palabras mediante la asociación con imágenes usando la técnica de arrastrar y soltar.
-
-## 🌟 Características
-
-- **Interfaz táctil optimizada** para iPad y dispositivos móviles
-- **Progresión de dificultad** con 3 niveles:
-  - Nivel 1: 3 palabras y 3 imágenes
-  - Nivel 2: 5 palabras y 5 imágenes  
-  - Nivel 3: 10 palabras y 10 imágenes
-- **Animaciones y efectos** de celebración
-- **Diseño colorido y atractivo** para mantener la atención
-- **Fuente Comic Sans** fácil de leer para niños
-- **Sonidos visuales** con emojis y confeti
-
-## 🚀 Cómo usar
-
-1. **Abrir el juego**: Abre `index.html` en tu navegador web
-2. **Arrastrar palabras**: Toca y arrastra las palabras desde la parte superior
-3. **Soltar en imágenes**: Suelta cada palabra sobre la imagen correspondiente
-4. **Completar niveles**: Completa todos los emparejamientos para avanzar al siguiente nivel
-5. **Celebrar**: ¡Disfruta de las animaciones de celebración!
-
-## 📱 Instalación en iPad
-
-Para instalar el juego como una app en tu iPad:
-
-1. Abre Safari en tu iPad
-2. Navega a la página del juego
-3. Toca el botón de "Compartir" 📤
-4. Selecciona "Añadir a pantalla de inicio"
-5. ¡Listo! Ahora tienes el juego como una app independiente
-
-## 🎨 Personalización
-
-### Agregar nuevas palabras
-
-Para agregar más palabras al juego, edita el archivo `script.js` y modifica el objeto `gameData`:
-
-```javascript
-const gameData = {
-    level1: [
-        { word: 'NUEVA_PALABRA', emoji: '🆕', id: 'nueva' },
-        // ... más palabras
-    ],
-    // ... otros niveles
-};
-```
-
-### Cambiar colores
-
-Para personalizar los colores, modifica el archivo `styles.css`:
-
-```css
-/* Cambiar color de fondo principal */
-body {
-    background: linear-gradient(135deg, #TU_COLOR_1 0%, #TU_COLOR_2 100%);
-}
-
-/* Cambiar color de las tarjetas de palabras */
-.word-card {
-    background: linear-gradient(135deg, #TU_COLOR_3, #TU_COLOR_4);
-}
-```
-
-## 🎯 Objetivos Educativos
-
-- **Reconocimiento de palabras**: Asociar texto con imágenes
-- **Motricidad fina**: Desarrollar habilidades de arrastrar y soltar
-- **Coordinación ojo-mano**: Mejorar la precisión táctil
-- **Vocabulario**: Aprender nuevas palabras de forma visual
-- **Autoestima**: Celebrar logros con animaciones positivas
-
-## 🔧 Tecnologías Utilizadas
-
-- **HTML5**: Estructura semántica del juego
-- **CSS3**: Diseño responsivo y animaciones
-- **JavaScript**: Lógica del juego y interactividad
-- **PWA**: Aplicación web progresiva para instalación
-
-## 🐛 Solución de Problemas
-
-### El drag and drop no funciona en iPad
-- Asegúrate de usar Safari (es el navegador recomendado)
-- Verifica que JavaScript esté habilitado
-- Intenta reiniciar el navegador
-
-### Las animaciones van lentas
-- Cierra otras aplicaciones en el iPad
-- Verifica que tengas suficiente memoria disponible
-- Usa la última versión de Safari
-
-### No se escuchan sonidos
-- Este juego usa efectos visuales en lugar de sonidos
-- Los efectos de celebración aparecen como confeti en pantalla
-
-## 🤝 Contribuciones
-
-¡Las contribuciones son bienvenidas! Puedes:
-
-1. Agregar nuevas palabras e imágenes
-2. Mejorar las animaciones
-3. Añadir nuevos niveles de dificultad
-4. Optimizar el rendimiento
-5. Traducir a otros idiomas
-
-## 📄 Licencia
-
-Este proyecto está disponible bajo la licencia MIT. Siéntete libre de usarlo, modificarlo y distribuirlo.
-
-## 💝 Agradecimientos
-
-Creado con amor para fomentar el aprendizaje temprano y la diversión educativa. ¡Esperamos que tu pequeña disfrute del juego!
+Un juego educativo interactivo diseñado especialmente para **Emma (~4 años)**, basado en el **Método de Lectura Global** (asociación directa de grafía, concepto y fonema), potenciado con **repetición espaciada adaptativa** y estímulos multimodales.
 
 ---
 
-**¡Que comience la diversión del aprendizaje! 🎉** 
+## 🌟 Características Principales
+
+### 1. Estimulación Multimodal (Voz y Oído)
+- **Pronunciación instantánea:** Al tocar o interactuar con cualquier palabra, el juego la lee en voz alta en español claro y cálido utilizando la Web Speech API (`SpeechSynthesis`).
+- **Efectos sonoros lúdicos:** Burbujas suaves al seleccionar, campanas de armonía mayor al acertar y fanfarrias alegres al completar niveles, sintetizados sin latencia con la Web Audio API (100% offline).
+- **Refuerzo positivo verbal:** Felicitaciones cariñosas (*"¡Muy bien, gato!"*, *"¡Excelente!"*).
+
+### 2. Ergonomía Infantil Calibrada (4 Años)
+- **Interacción Dual:** Soporta tanto arrastrar y soltar (**Drag & Drop**) como tocar la palabra y luego la imagen (**Tap-to-Match**).
+- **Dificultad Óptima:** Niveles calibrados en **3 a 4 elementos activos**, garantizando foco y evitando sobrecarga cognitiva.
+- **Tipografía Redondeada y Clara:** Diseñado con fuentes de alta legibilidad infantil (*Fredoka* y *Quicksand*).
+- **Ilustraciones Vectoriales SVG (Stickers):** Diseños limpios, coloridos y amigables con fondo transparente nativo, nítidos en pantallas Retina de iPad.
+
+### 3. Metáforas Visuales de Progreso y Tiempo
+- **El Cielo de Emma (Control de Tiempo Saludable):** En lugar de un cronómetro numérico abstracto, un **solecito sonriente ☀️** recorre el cielo a lo largo de los 15 minutos de la sesión hasta dar paso a la luna 🌙.
+- **Frasco de Estrellas ⭐:** Colección tangible de estrellas ganadas en cada nivel.
+
+### 4. Cerebro Pedagógico Adaptativo
+- **Algoritmo de Repetición Espaciada:** Registra aciertos, fallos y tiempo transcurrido por palabra para reforzar las que presentan dificultad y espaciar las ya dominadas.
+- **Anclajes Afectivos:** Integra automáticamente figuras familiares ("Mamá", "Papá", "Emma") en las sesiones para generar seguridad emocional.
+
+### 5. Zona de Papás (Control Parental)
+- Acceso protegido mediante un reto matemático simple.
+- Visualización de estadísticas de vocabulario (palabras vistas y dominadas).
+- Configuración de duración de sesión y sonido.
+
+---
+
+## 📂 Arquitectura del Proyecto
+
+```
+Juego/
+├── index.html                  # Punto de entrada y estructura PWA
+├── styles.css                  # Estilos visuales, animaciones y diseño táctil
+├── script.js                   # Controlador de vista y eventos táctiles
+├── manifest.json               # Configuración para instalación en iPad / Safari
+├── BACKLOG.md                  # Hoja de ruta y backlog pedagógico
+├── src/
+│   ├── core/
+│   │   └── GameEngine.js       # Orquestador del bucle y lógica de niveles
+│   ├── data/
+│   │   ├── assets.js           # Proveedor de ilustraciones vectoriales SVG
+│   │   ├── active_curriculum.json # Vocabulario activo y categorías
+│   │   └── master_curriculum.json # Currículum pedagógico completo
+│   ├── managers/
+│   │   ├── LearningManager.js  # Motor pedagógico y repetición espaciada
+│   │   └── SessionController.js# Control de tiempo y duración de sesión
+│   ├── services/
+│   │   └── AudioService.js     # Motor de síntesis de voz y efectos Web Audio
+│   └── utils/
+│       ├── StorageManager.js   # Persistencia local con versionado
+│       └── RateLimiter.js      # Utilidad de control de flujo
+```
+
+---
+
+## 🚀 Cómo Ejecutar e Instalar en iPad
+
+1. **Abrir en el navegador:**
+   - Puedes abrir directamente el archivo `index.html` o servirlo con cualquier servidor local (por ejemplo `npx serve .` o Live Server).
+2. **Instalar en iPad como App Nativa:**
+   - Abre la URL del juego en **Safari** en el iPad.
+   - Toca el botón **Compartir** (📤).
+   - Selecciona **"Añadir a pantalla de inicio"** (Add to Home Screen).
+   - ¡Listo! Se abrirá a pantalla completa sin barras de navegador como una app nativa.
+
+---
+
+## 💖 Dedicatoria
+
+Creado con amor para acompañar el crecimiento, la curiosidad y el descubrimiento de la lectura de Emma. 🎉

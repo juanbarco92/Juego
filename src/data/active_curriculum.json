@@ -1,0 +1,287 @@
+{
+  "version": "2.0",
+  "description": "Master curriculum for Emma's learning journey - Global Reading Method",
+  "familyMembers": {
+    "core": [
+      "Mamá",
+      "Papá"
+    ],
+    "extended": []
+  },
+  "wordSets": {
+    "level_1_me_and_environment": {
+      "my_body_face": {
+        "words": [
+          "orejas"
+        ],
+        "theme": "mi carita",
+        "difficulty": 1,
+        "category": "BODY_PART",
+        "renderMode": "ICON",
+        "promptProfile": "flat_icon_body_no_anthro"
+      },
+      "toys_favorites": {
+        "words": [
+          "pelota"
+        ],
+        "theme": "mis juguetes",
+        "difficulty": 1,
+        "category": "OBJECT",
+        "renderMode": "ICON",
+        "promptProfile": "flat_icon_object_no_anthro"
+      },
+      "clothing_basics": {
+        "words": [
+          "guantes"
+        ],
+        "theme": "mi ropa",
+        "difficulty": 1,
+        "category": "CLOTHING",
+        "renderMode": "ICON",
+        "promptProfile": "flat_icon_clothing_no_anthro"
+      },
+      "pets_domestic": {
+        "words": [
+          "perro",
+          "gato",
+          "conejo",
+          "pollito"
+        ],
+        "theme": "mascotas",
+        "difficulty": 1,
+        "category": "ANIMAL",
+        "renderMode": "ICON",
+        "promptProfile": "flat_icon_animal_no_anthro"
+      }
+    },
+    "level_2_house_and_routines": {
+      "kitchen_vegetables": {
+        "words": [
+          "papa",
+          "cebolla",
+          "brócoli",
+          "calabaza"
+        ],
+        "theme": "verduras sanas",
+        "difficulty": 2,
+        "category": "FOOD",
+        "renderMode": "ICON",
+        "promptProfile": "flat_icon_food_no_anthro"
+      },
+      "kitchen_food": {
+        "words": [
+          "huevo",
+          "yogur"
+        ],
+        "theme": "comida",
+        "difficulty": 2,
+        "category": "FOOD",
+        "renderMode": "ICON",
+        "promptProfile": "flat_icon_food_no_anthro"
+      },
+      "kitchen_utensils": {
+        "words": [
+          "mesa"
+        ],
+        "theme": "cocina",
+        "difficulty": 2,
+        "category": "OBJECT",
+        "renderMode": "ICON",
+        "promptProfile": "flat_icon_object_no_anthro"
+      },
+      "bathroom_objects": {
+        "words": [
+          "jabón"
+        ],
+        "theme": "hora del baño",
+        "difficulty": 2,
+        "category": "OBJECT",
+        "renderMode": "ICON",
+        "promptProfile": "flat_icon_object_no_anthro"
+      },
+      "bedroom_furniture": {
+        "words": [
+          "lámpara",
+          "mesa"
+        ],
+        "theme": "mi cuarto",
+        "difficulty": 2,
+        "category": "OBJECT",
+        "renderMode": "ICON",
+        "promptProfile": "flat_icon_object_no_anthro"
+      },
+      "living_room": {
+        "words": [
+          "sofá",
+          "mesa",
+          "flor"
+        ],
+        "theme": "la sala",
+        "difficulty": 2,
+        "category": "OBJECT",
+        "renderMode": "ICON",
+        "promptProfile": "flat_icon_object_no_anthro"
+      },
+      "house_parts": {
+        "words": [
+          "jardín"
+        ],
+        "theme": "mi casa",
+        "difficulty": 2,
+        "category": "PLACE",
+        "renderMode": "ICON",
+        "promptProfile": "flat_icon_place_no_anthro"
+      }
+    },
+    "level_3_world_and_nature": {
+      "park_nature": {
+        "words": [
+          "flor",
+          "sol"
+        ],
+        "theme": "naturaleza",
+        "difficulty": 3,
+        "category": "PLACE",
+        "renderMode": "ICON",
+        "promptProfile": "flat_icon_place_no_anthro"
+      },
+      "farm_animals": {
+        "words": [
+          "gallo",
+          "pollito",
+          "conejo"
+        ],
+        "theme": "la granja",
+        "difficulty": 3,
+        "category": "ANIMAL",
+        "renderMode": "ICON",
+        "promptProfile": "flat_icon_animal_no_anthro"
+      },
+      "wild_animals": {
+        "words": [
+          "jirafa",
+          "tigre",
+          "lobo"
+        ],
+        "theme": "animales salvajes",
+        "difficulty": 3,
+        "category": "ANIMAL",
+        "renderMode": "ICON",
+        "promptProfile": "flat_icon_animal_no_anthro"
+      },
+      "insects": {
+        "words": [
+          "caracol"
+        ],
+        "theme": "bichitos",
+        "difficulty": 3,
+        "category": "ANIMAL",
+        "renderMode": "ICON",
+        "promptProfile": "flat_icon_animal_no_anthro"
+      },
+      "transport_air_water": {
+        "words": [
+          "bote"
+        ],
+        "theme": "aire y agua",
+        "difficulty": 3,
+        "category": "OBJECT",
+        "renderMode": "ICON",
+        "promptProfile": "flat_icon_object_no_anthro"
+      },
+      "school_items": {
+        "words": [
+          "mesa",
+          "amigos"
+        ],
+        "theme": "la escuela",
+        "difficulty": 3,
+        "category": "OBJECT",
+        "renderMode": "ICON",
+        "promptProfile": "flat_icon_object_no_anthro"
+      },
+      "city_places": {
+        "words": [
+          "escuela"
+        ],
+        "theme": "la ciudad",
+        "difficulty": 3,
+        "category": "PLACE",
+        "renderMode": "ICON",
+        "promptProfile": "flat_icon_place_no_anthro"
+      }
+    },
+    "level_4_concepts_and_actions": {
+      "verbs_actions_1": {
+        "words": [
+          "comer",
+          "dormir"
+        ],
+        "theme": "acciones divertidas",
+        "difficulty": 4,
+        "category": "VERB",
+        "renderMode": "CHARACTER",
+        "promptProfile": "flat_character_action"
+      },
+      "verbs_actions_2": {
+        "words": [
+          "empujar"
+        ],
+        "theme": "más acciones",
+        "difficulty": 4,
+        "category": "VERB",
+        "renderMode": "CHARACTER",
+        "promptProfile": "flat_character_action"
+      },
+      "verbs_daily": {
+        "words": [
+          "cepillar",
+          "vestir",
+          "barrer"
+        ],
+        "theme": "acciones diarias",
+        "difficulty": 4,
+        "category": "VERB",
+        "renderMode": "CHARACTER",
+        "promptProfile": "flat_character_action"
+      },
+      "adjectives_colors": {
+        "words": [
+          "negro"
+        ],
+        "theme": "colores",
+        "difficulty": 4,
+        "category": "ADJECTIVE",
+        "renderMode": "CHARACTER",
+        "promptProfile": "flat_character_concept"
+      },
+      "adjectives_feelings": {
+        "words": [
+          "cansado"
+        ],
+        "theme": "sentimientos",
+        "difficulty": 4,
+        "category": "ADJECTIVE",
+        "renderMode": "CHARACTER",
+        "promptProfile": "flat_character_concept"
+      },
+      "professions": {
+        "words": [
+          "médico"
+        ],
+        "theme": "profesiones",
+        "difficulty": 4,
+        "category": "PROFESSION",
+        "renderMode": "CHARACTER",
+        "promptProfile": "flat_character_profession"
+      }
+    }
+  },
+  "learningRules": {
+    "minWordsPerSession": 3,
+    "maxWordsPerSession": 8,
+    "alwaysIncludeFamily": true,
+    "repetitionThreshold": 3,
+    "masteryThreshold": 5
+  }
+}

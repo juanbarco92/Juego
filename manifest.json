@@ -1,13 +1,18 @@
 {
-  "name": "Juego de Palabras para Niños",
-  "short_name": "Palabras Niños",
-  "description": "Un juego educativo de arrastrar y soltar palabras para niños de 2 años",
+  "name": "Emma Aprende 👧✨",
+  "short_name": "Emma Aprende",
+  "description": "Juego de lectura global interactivo para Emma",
   "start_url": "./index.html",
   "display": "standalone",
-  "background_color": "#667eea",
-  "theme_color": "#667eea",
+  "background_color": "#E0F2FE",
+  "theme_color": "#FFD166",
   "orientation": "landscape-primary",
   "icons": [
+    {
+      "src": "images/elements/emma.png",
+      "sizes": "256x256",
+      "type": "image/png"
+    },
     {
       "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect width='192' height='192' fill='%23667eea' rx='20'/%3E%3Ctext x='96' y='130' font-size='100' text-anchor='middle' fill='white'%3E🎮%3C/text%3E%3C/svg%3E",
       "sizes": "192x192",

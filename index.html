@@ -1,113 +1,214 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Palabras Niños">
-    <meta name="theme-color" content="#667eea">
-    <title>Juego de Palabras para Niños</title>
+    <meta name="apple-mobile-web-app-title" content="Emma Aprende">
+    <link rel="apple-touch-icon" href="images/elements/emma.png">
+    <meta name="theme-color" content="#FFD166">
+    <title>Emma Aprende 👧✨ - Juego de Lectura Global</title>
     <link rel="manifest" href="manifest.json">
+
+    <!-- Google Fonts: Fredoka & Quicksand -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Quicksand:wght@600;700&display=swap" rel="stylesheet">
+
+    <!-- Styles -->
     <link rel="stylesheet" href="styles.css">
-    <script src="scenarios.js"></script>
-    <script src="editor.js"></script>
+
+    <!-- Core Dependencies -->
+    <script src="src/data/curriculum.js"></script>
+    <script src="src/data/assets.js"></script>
+    <script src="src/services/AudioService.js"></script>
+    <script src="src/utils/StorageManager.js"></script>
+    <script src="src/managers/LearningManager.js"></script>
+    <script src="src/managers/SessionController.js"></script>
+    <script src="src/core/GameEngine.js"></script>
 </head>
+
 <body>
-    <div class="game-container">
-        <!-- Header -->
-        <header class="game-header">
-            <h1>Arrastra la palabra correcta!</h1>
-            <div class="level-info">
-                <span class="level">Nivel: <span id="current-level">1</span></span>
-                <span class="score">Puntos: <span id="current-score">0</span></span>
+    <!-- Background Floating Elements (Libro de Cuentos Ilustrado) -->
+    <div class="sky-background" id="sky-background">
+        <div class="cloud cloud-1"></div>
+        <div class="cloud cloud-2"></div>
+        <div class="cloud cloud-3"></div>
+        <div class="ground-hills">
+            <div class="hill hill-back"></div>
+            <div class="hill hill-front"></div>
+            <div class="daisy daisy-1">🌸</div>
+            <div class="daisy daisy-2">🌼</div>
+            <div class="daisy daisy-3">🌸</div>
+        </div>
+    </div>
+
+    <!-- Main Game App -->
+    <div class="app-container" id="app-container">
+        <!-- Top Navigation & Sky Progress Bar -->
+        <header class="top-bar">
+            <!-- App Brand -->
+            <div class="brand">
+                <span class="brand-avatar">👧</span>
+                <span class="brand-name">Emma Aprende</span>
+            </div>
+
+            <!-- The Sky Progress Metaphor (El Cielo de Emma) -->
+            <div class="sky-progress-container" title="Tiempo de juego">
+                <div class="sky-track" id="sky-track">
+                    <div class="sun-marker" id="sun-marker">
+                        <svg viewBox="0 0 40 40" width="38" height="38">
+                            <circle cx="20" cy="20" r="12" fill="#FFB703"/>
+                            <g stroke="#FB8500" stroke-width="2.5" stroke-linecap="round">
+                                <line x1="20" y1="2" x2="20" y2="5"/>
+                                <line x1="20" y1="35" x2="20" y2="38"/>
+                                <line x1="2" y1="20" x2="5" y2="20"/>
+                                <line x1="35" y1="20" x2="38" y2="20"/>
+                                <line x1="7" y1="7" x2="10" y2="10"/>
+                                <line x1="30" y1="30" x2="33" y2="33"/>
+                                <line x1="7" y1="33" x2="10" y2="30"/>
+                                <line x1="30" y1="10" x2="33" y2="7"/>
+                            </g>
+                            <circle cx="16" cy="19" r="1.5" fill="#5F0F40"/>
+                            <circle cx="24" cy="19" r="1.5" fill="#5F0F40"/>
+                            <path d="M17 23 Q20 26 23 23" stroke="#5F0F40" stroke-width="1.2" fill="none" stroke-linecap="round"/>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Star Jar (Colección de Estrellas) -->
+            <div class="star-jar" id="star-jar" title="Estrellas ganadas">
+                <span class="star-icon">⭐</span>
+                <span class="star-count" id="star-count">0</span>
+            </div>
+
+            <!-- Quick Controls -->
+            <div class="quick-controls">
+                <button id="audio-toggle-btn" class="icon-btn" title="Activar/Silenciar sonido" aria-label="Sonido">🔊</button>
+                <button id="parent-gate-btn" class="icon-btn" title="Zona de papás" aria-label="Zona de papás">⚙️</button>
             </div>
         </header>
 
-        <!-- Game Area -->
-        <main class="game-area">
-            <!-- Words Section -->
-            <section class="words-section">
-                <h2>🔤 Arrastra las palabras</h2>
-                <div class="words-container" id="words-container">
-                    <!-- Words will be generated here -->
-                </div>
+        <!-- Dynamic Game Stage -->
+        <main class="game-stage">
+            <!-- Theme Header / World Banner -->
+            <div class="theme-banner">
+                <span class="theme-title" id="theme-title">🌟 ¡A descubrir palabras!</span>
+            </div>
+
+            <!-- Spots / Image Grid (Burbujas mágicas donde van las palabras) -->
+            <section class="spots-grid" id="spots-grid">
+                <!-- Image spots will be rendered dynamically -->
             </section>
 
-            <!-- Scenario Section -->
-            <section class="scenario-section">
-                <h2 id="scenario-title">🏠 La Casa</h2>
-                <div class="scenario-container" id="scenario-container">
-                    <div class="scenario-background" id="scenario-background">
-                        <!-- TODO: Drop zones eliminadas - crear nuevas desde cero -->
-                    </div>
+            <!-- Word Bank (Tarjetas táctiles de palabras) -->
+            <section class="word-bank-section">
+                <div class="word-bank" id="word-bank">
+                    <!-- Word cards will be rendered dynamically -->
                 </div>
             </section>
         </main>
-
-        <!-- Controls -->
-        <div class="controls">
-            <button id="restart-btn" class="btn btn-restart">🔄 Reiniciar</button>
-            <button id="next-level-btn" class="btn btn-next" style="display: none;">➡️ Siguiente Nivel</button>
-        </div>
-
-        <!-- Success Modal -->
-        <div class="modal" id="success-modal" style="display: none;">
-            <div class="modal-content">
-                <h2>🎉 ¡Muy bien!</h2>
-                <p id="success-message">¡Has completado el nivel!</p>
-                <button id="continue-btn" class="btn btn-primary">Continuar</button>
-            </div>
-        </div>
-
-        <!-- Celebration -->
-        <div class="celebration" id="celebration"></div>
-
-        <!-- Debug Panel -->
-        <div class="debug-panel" id="debug-panel" style="display: none;">
-            <div class="debug-header">
-                <h3>🔧 Panel de Debug</h3>
-                <button id="debug-close" class="debug-close">×</button>
-            </div>
-            <div class="debug-content">
-                <div class="debug-section">
-                    <h4>Saltar a Nivel:</h4>
-                    <div class="debug-level-buttons">
-                        <button class="debug-level-btn" data-level="1">Nivel 1</button>
-                        <button class="debug-level-btn" data-level="2">Nivel 2</button>
-                        <button class="debug-level-btn" data-level="3">Nivel 3</button>
-                        <button class="debug-level-btn" data-level="4">Nivel 4</button>
-                        <button class="debug-level-btn" data-level="5">Nivel 5</button>
-                    </div>
-                </div>
-                <div class="debug-section">
-                    <h4>Opciones de Debug:</h4>
-                    <label class="debug-checkbox">
-                        <input type="checkbox" id="debug-show-dropzones"> Mostrar DropZones
-                    </label>
-                    <label class="debug-checkbox">
-                        <input type="checkbox" id="debug-show-positions"> Mostrar Posiciones
-                    </label>
-                </div>
-                <div class="debug-section">
-                    <h4>Nivel Actual:</h4>
-                    <div id="debug-level-info">
-                        <p><strong>Nivel:</strong> <span id="debug-current-level">1</span></p>
-                        <p><strong>Escenario:</strong> <span id="debug-current-scenario">Casa</span></p>
-                        <p><strong>Elementos:</strong> <span id="debug-current-elements">2</span></p>
-                    </div>
-                </div>
-                <div class="debug-section">
-                    <h4>Elementos Disponibles:</h4>
-                    <div id="debug-elements-list"></div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Debug Toggle Button -->
-        <button id="debug-toggle" class="debug-toggle">🔧</button>
     </div>
 
+    <!-- Celebration Particles Container -->
+    <div class="celebration-particles" id="celebration-particles"></div>
+
+    <!-- Welcome Modal (Toca para jugar) -->
+    <div class="modal-backdrop active" id="welcome-modal">
+        <div class="modal-card welcome-card">
+            <div class="welcome-avatar">👧✨</div>
+            <h2>¡Hola, Emma!</h2>
+            <p>¿Lista para jugar y aprender palabras mágicas?</p>
+            <button id="start-game-btn" class="btn-play">
+                <span>¡JUGAR!</span>
+                <span class="btn-icon">🚀</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Level Complete Celebration Modal -->
+    <div class="level-complete-banner" id="level-complete-banner">
+        <div class="star-burst">⭐</div>
+        <div class="complete-text">¡Lo lograste, Emma! 🎉</div>
+    </div>
+
+    <!-- Rest Modal (Fin de sesión suave) -->
+    <div class="modal-backdrop" id="rest-modal">
+        <div class="modal-card rest-card">
+            <div class="rest-icon">🌙😴</div>
+            <h2>¡Buen trabajo, Emma!</h2>
+            <p>El sol se ha ocultado por hoy. Es momento de descansar y jugar a otra cosa.</p>
+            <div class="session-stats-summary" id="session-stats-summary">
+                <!-- Summary of stars & words -->
+            </div>
+            <button id="rest-close-btn" class="btn-secondary">¡Hasta luego! 💖</button>
+        </div>
+    </div>
+
+    <!-- Parent Zone Modal (Zona de Papás) -->
+    <div class="modal-backdrop" id="parent-modal">
+        <div class="modal-card parent-card">
+            <div class="parent-header">
+                <h3>👨‍👧 Zona de Papás</h3>
+                <button id="close-parent-btn" class="btn-close">&times;</button>
+            </div>
+
+            <!-- Security Gate Challenge -->
+            <div id="parent-gate-challenge" class="parent-gate-step">
+                <p>Para ingresar, resuelve esta suma:</p>
+                <div class="math-challenge">
+                    <span id="math-problem">3 + 2 = ?</span>
+                </div>
+                <input type="number" id="math-answer-input" placeholder="Respuesta" class="math-input">
+                <button id="verify-math-btn" class="btn-primary">Entrar</button>
+                <p id="math-error" class="error-msg" style="display:none;">Intenta de nuevo.</p>
+            </div>
+
+            <!-- Parent Dashboard (Unlocked) -->
+            <div id="parent-dashboard" class="parent-dashboard-step" style="display: none;">
+                <h4>📊 Progreso de Emma</h4>
+                <div class="dashboard-stats" id="dashboard-stats">
+                    <div class="stat-box">
+                        <span class="stat-number" id="stat-words-seen">0</span>
+                        <span class="stat-label">Palabras Vistas</span>
+                    </div>
+                    <div class="stat-box">
+                        <span class="stat-number" id="stat-words-mastered">0</span>
+                        <span class="stat-label">Palabras Dominadas</span>
+                    </div>
+                    <div class="stat-box">
+                        <span class="stat-number" id="stat-sessions">0</span>
+                        <span class="stat-label">Sesiones</span>
+                    </div>
+                </div>
+
+                <h4>⚙️ Ajustes</h4>
+                <div class="setting-row">
+                    <span>Duración de sesión:</span>
+                    <select id="session-duration-select" class="custom-select">
+                        <option value="10">10 minutos</option>
+                        <option value="15" selected>15 minutos</option>
+                        <option value="20">20 minutos</option>
+                    </select>
+                </div>
+
+                <div class="setting-row">
+                    <span>Sonido y Voz:</span>
+                    <button id="parent-audio-toggle" class="btn-sm">Activo 🔊</button>
+                </div>
+
+                <div class="parent-actions">
+                    <button id="reset-history-btn" class="btn-danger-outline">Reiniciar Progreso</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- UI Controller Script -->
     <script src="script.js"></script>
 </body>
-</html> 
+
+</html>
