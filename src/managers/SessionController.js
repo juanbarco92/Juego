@@ -9,6 +9,7 @@ class SessionController {
         this.startTime = null;
         this.pausedTime = 0;
         this.isPaused = false;
+        this.savedAccumulatedMs = this.loadTodayProgress();
         this.callbacks = {
             onTick: null,
             onWarning: null,
@@ -17,16 +18,77 @@ class SessionController {
     }
 
     /**
-     * Start a new session
+     * Get storage key for today's session
+     */
+    getTodayKey() {
+        const d = new Date();
+        return `emma_session_${d.getFullYear()}_${d.getMonth() + 1}_${d.getDate()}`;
+    }
+
+    /**
+     * Load today's accumulated play time
+     */
+    loadTodayProgress() {
+        try {
+            const key = this.getTodayKey();
+            const stored = localStorage.getItem(key);
+            return stored ? parseInt(stored, 10) || 0 : 0;
+        } catch (e) {
+            return 0;
+        }
+    }
+
+    /**
+     * Save today's accumulated play time
+     */
+    saveTodayProgress(elapsed) {
+        try {
+            const key = this.getTodayKey();
+            localStorage.setItem(key, Math.floor(elapsed));
+        } catch (e) {}
+    }
+
+    /**
+     * Reset session progress (for parents or explicit restart)
+     */
+    resetSession() {
+        try {
+            localStorage.removeItem(this.getTodayKey());
+        } catch (e) {}
+        this.savedAccumulatedMs = 0;
+        this.startTime = Date.now();
+        this.pausedTime = 0;
+        this.isPaused = false;
+        this.saveTodayProgress(0);
+        if (this.callbacks.onTick) {
+            this.callbacks.onTick(this.maxDuration);
+        }
+    }
+
+    /**
+     * Start or resume session
      */
     startSession() {
+        // If already active, DO NOT reset! Simply resume if paused.
+        if (this.sessionActive) {
+            if (this.isPaused) {
+                this.resumeSession();
+            }
+            return {
+                startTime: this.startTime,
+                maxDuration: this.maxDuration
+            };
+        }
+
         this.sessionActive = true;
-        this.startTime = Date.now();
+        this.savedAccumulatedMs = this.loadTodayProgress();
+        // Start time incorporates prior progress today
+        this.startTime = Date.now() - this.savedAccumulatedMs;
         this.pausedTime = 0;
         this.isPaused = false;
         this.startTimer();
 
-        console.log('📚 Session started - 15 minutes available');
+        console.log('📚 Session started/resumed - Daily elapsed:', Math.floor(this.savedAccumulatedMs / 1000), 's');
         return {
             startTime: this.startTime,
             maxDuration: this.maxDuration
@@ -43,7 +105,11 @@ class SessionController {
 
         this.timerInterval = setInterval(() => {
             if (!this.isPaused && this.sessionActive) {
+                const elapsed = this.getElapsedTime();
                 const remaining = this.getRemainingTime();
+
+                // Persist progress
+                this.saveTodayProgress(elapsed);
 
                 // Trigger callbacks
                 if (this.callbacks.onTick) {
@@ -74,6 +140,7 @@ class SessionController {
 
         this.isPaused = true;
         this.pauseStartTime = Date.now();
+        this.saveTodayProgress(this.getElapsedTime());
         console.log('⏸️ Session paused');
     }
 

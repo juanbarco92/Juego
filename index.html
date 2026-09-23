@@ -18,16 +18,16 @@
     <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Quicksand:wght@600;700&display=swap" rel="stylesheet">
 
     <!-- Styles -->
-    <link rel="stylesheet" href="styles.css?v=2.5">
+    <link rel="stylesheet" href="styles.css?v=2.6">
 
     <!-- Core Dependencies -->
-    <script src="src/data/curriculum.js?v=2.5"></script>
-    <script src="src/data/assets.js?v=2.5"></script>
-    <script src="src/services/AudioService.js?v=2.5"></script>
-    <script src="src/utils/StorageManager.js?v=2.5"></script>
-    <script src="src/managers/LearningManager.js?v=2.5"></script>
-    <script src="src/managers/SessionController.js?v=2.5"></script>
-    <script src="src/core/GameEngine.js?v=2.5"></script>
+    <script src="src/data/curriculum.js?v=2.6"></script>
+    <script src="src/data/assets.js?v=2.6"></script>
+    <script src="src/services/AudioService.js?v=2.6"></script>
+    <script src="src/utils/StorageManager.js?v=2.6"></script>
+    <script src="src/managers/LearningManager.js?v=2.6"></script>
+    <script src="src/managers/SessionController.js?v=2.6"></script>
+    <script src="src/core/GameEngine.js?v=2.6"></script>
 </head>
 
 <body>
@@ -53,7 +53,7 @@
             <div class="brand">
                 <span class="brand-avatar">👧</span>
                 <span class="brand-name">Emma Aprende</span>
-                <span class="build-badge">v2.5</span>
+                <span class="build-badge">v2.6</span>
             </div>
 
             <!-- The Sky Progress Metaphor (El Cielo de Emma) -->
@@ -147,61 +147,137 @@
         </div>
     </div>
 
-    <!-- Magic Chest Modal (Tarjetas 3D de Aprendizaje / Flashcards Doman) -->
-    <div class="modal-backdrop" id="magic-chest-modal">
-        <div class="modal-card chest-card">
-            <div class="chest-header">
-                <div class="chest-theme-badge" id="chest-theme-badge">
-                    <span id="chest-theme-icon">🍓</span>
-                    <span id="chest-theme-name">Frutas y Meriendas</span>
+    <!-- ==========================================================================
+         Playa de los Cofres Mágicos (Módulo de Descubrimiento de Palabras 3D)
+         ========================================================================== -->
+    <div id="magic-beach-stage" class="beach-stage">
+        <!-- Beach Horizon & Scenery -->
+        <div class="beach-scenery">
+            <!-- Sunny Sky -->
+            <div class="beach-sky">
+                <div class="beach-sun">
+                    <svg viewBox="0 0 50 50" width="56" height="56">
+                        <circle cx="25" cy="25" r="16" fill="#FFB703"/>
+                        <circle cx="21" cy="23" r="2" fill="#5F0F40"/>
+                        <circle cx="29" cy="23" r="2" fill="#5F0F40"/>
+                        <path d="M22 28 Q25 32 28 28" stroke="#5F0F40" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+                        <g stroke="#FB8500" stroke-width="3" stroke-linecap="round">
+                            <line x1="25" y1="3" x2="25" y2="6"/>
+                            <line x1="25" y1="44" x2="25" y2="47"/>
+                            <line x1="3" y1="25" x2="6" y2="25"/>
+                            <line x1="44" y1="25" x2="47" y2="25"/>
+                            <line x1="9" y1="9" x2="12" y2="12"/>
+                            <line x1="38" y1="38" x2="41" y2="41"/>
+                            <line x1="9" y1="41" x2="12" y2="38"/>
+                            <line x1="38" y1="12" x2="41" y2="9"/>
+                        </g>
+                    </svg>
                 </div>
-                <div class="chest-counter" id="chest-counter">1 / 4</div>
-                <button id="close-chest-btn" class="btn-close" aria-label="Cerrar">&times;</button>
+                <div class="beach-cloud beach-cloud-1"></div>
+                <div class="beach-cloud beach-cloud-2"></div>
+                <div class="beach-palm">🌴</div>
             </div>
 
-            <!-- Interactive 3D Flip Card Stage -->
-            <div class="chest-card-stage" id="chest-card-stage">
-                <div class="flashcard-3d" id="magic-flashcard">
-                    <!-- Front Side: Word & Pronunciation -->
+            <!-- Turquoise Ocean with animated waves -->
+            <div class="beach-ocean">
+                <div class="ocean-wave wave-back"></div>
+                <div class="ocean-wave wave-front"></div>
+            </div>
+
+            <!-- Golden Sand Beach -->
+            <div class="beach-sand">
+                <div class="sand-prop prop-shell">🐚</div>
+                <div class="sand-prop prop-starfish">⭐</div>
+                <div class="sand-prop prop-crab">🦀</div>
+            </div>
+        </div>
+
+        <!-- Beach Top Header -->
+        <div class="beach-header">
+            <button id="beach-back-home-btn" class="beach-icon-btn" title="Volver al Menú" aria-label="Volver">🏠</button>
+
+            <!-- Thematic Unit Selector -->
+            <div class="beach-category-selector">
+                <button id="beach-theme-prev" class="theme-nav-arrow" title="Tema anterior" aria-label="Anterior">◀</button>
+                <div class="beach-theme-badge" id="beach-theme-badge">
+                    <span id="beach-theme-icon">👨‍👩‍👧</span>
+                    <span id="beach-theme-name">Mi Familia</span>
+                </div>
+                <button id="beach-theme-next" class="theme-nav-arrow" title="Tema siguiente" aria-label="Siguiente">▶</button>
+            </div>
+
+            <!-- Opened Chests Counter -->
+            <div class="beach-counter" id="beach-counter" title="Cofres abiertos">
+                <span class="counter-star">⭐</span>
+                <span id="beach-opened-count">0</span> / <span id="beach-total-count">5</span>
+            </div>
+        </div>
+
+        <!-- Beach Stage Prompt -->
+        <div class="beach-prompt">
+            <span>✨ ¡Toca un cofre para descubrir qué hay dentro! ✨</span>
+        </div>
+
+        <!-- The 5 Chests on the Beach -->
+        <div class="beach-chests-row" id="beach-chests-row">
+            <!-- 5 chests rendered dynamically with 3D SVG graphics -->
+        </div>
+
+        <!-- Bottom Play Action -->
+        <div class="beach-bottom-bar">
+            <button id="beach-play-game-btn" class="btn-beach-play">
+                <span class="play-icon">🎮</span>
+                <span class="play-text">¡A jugar con estas palabras!</span>
+                <span class="play-arrow">🚀</span>
+            </button>
+        </div>
+
+        <!-- ==================================================================
+             Floating 3D Flashcard Overlay (Pops up when tapping any chest)
+             ================================================================== -->
+        <div id="beach-card-overlay" class="beach-card-overlay">
+            <div class="beach-card-wrapper">
+                <button id="close-beach-card-btn" class="btn-card-close" aria-label="Volver a la playa">✕</button>
+
+                <!-- Interactive 3D Flip Card -->
+                <div class="flashcard-3d" id="beach-flashcard">
+                    <!-- Front Side: Word & Big Speaker -->
                     <div class="card-face card-front">
-                        <span class="card-hint">✨ Toca para descubrir ✨</span>
-                        <h2 class="card-word" id="chest-word-front">manzana</h2>
-                        <button class="card-audio-btn" id="chest-audio-front-btn" title="Escuchar">
+                        <span class="card-hint">✨ Palabra Mágica ✨</span>
+                        <h2 class="card-word" id="beach-word-front">Mamá</h2>
+                        <button class="card-audio-btn" id="beach-audio-front-btn" title="Escuchar pronunciación">
                             <span class="speaker-icon">🔊</span>
                         </button>
-                        <span class="tap-invite">👆 Toca para girar</span>
+                        <span class="tap-invite">👆 Toca para ver la imagen</span>
                     </div>
 
-                    <!-- Back Side: 3D Illustration & Word -->
+                    <!-- Back Side: 3D Illustration Sticker & Word -->
                     <div class="card-face card-back">
                         <div class="card-image-box">
-                            <img id="chest-img-back" src="" alt="Ilustración">
+                            <img id="beach-img-back" src="" alt="Ilustración">
                         </div>
-                        <h3 class="card-word-back" id="chest-word-back">manzana</h3>
-                        <button class="card-audio-btn small" id="chest-audio-back-btn" title="Escuchar de nuevo">
+                        <h3 class="card-word-back" id="beach-word-back">Mamá</h3>
+                        <button class="card-audio-btn small" id="beach-audio-back-btn" title="Escuchar de nuevo">
                             <span>🔊</span>
                         </button>
                     </div>
                 </div>
-            </div>
 
-            <!-- Navigation Controls -->
-            <div class="chest-controls">
-                <button id="chest-prev-btn" class="chest-nav-btn" aria-label="Anterior">
-                    <span>⬅️</span>
-                </button>
-                <button id="chest-flip-btn" class="chest-action-btn">
-                    <span>Girar 🔄</span>
-                </button>
-                <button id="chest-next-btn" class="chest-nav-btn" aria-label="Siguiente">
-                    <span>➡️</span>
-                </button>
-            </div>
+                <!-- Card Controls -->
+                <div class="beach-card-actions">
+                    <button id="beach-card-prev" class="chest-nav-btn" aria-label="Cofre anterior">
+                        <span>⬅️</span>
+                    </button>
+                    <button id="beach-card-flip" class="chest-action-btn">
+                        <span>Girar 🔄</span>
+                    </button>
+                    <button id="beach-card-next" class="chest-nav-btn" aria-label="Siguiente cofre">
+                        <span>➡️</span>
+                    </button>
+                </div>
 
-            <!-- Play with these words action -->
-            <div class="chest-footer-action">
-                <button id="chest-play-now-btn" class="btn-chest-play">
-                    <span>¡A jugar con estas palabras! 🚀</span>
+                <button id="beach-card-done" class="btn-card-done">
+                    <span>Volver a la playa 🏖️</span>
                 </button>
             </div>
         </div>
@@ -307,7 +383,7 @@
     </div>
 
     <!-- UI Controller Script -->
-    <script src="script.js?v=2.5"></script>
+    <script src="script.js?v=2.6"></script>
 </body>
 
 </html>

@@ -1166,109 +1166,607 @@ html, body {
 }
 
 /* ==========================================================================
-   Cofre Mágico Integrado en el Paisaje (Storybook World View)
+   Pantalla de Inicio / Bienvenida (Anti-Glitch & Clean Rendering)
    ========================================================================== */
 
-#magic-chest-modal {
-    background: rgba(38, 70, 83, 0.08) !important;
-    backdrop-filter: blur(1.5px) !important;
-    -webkit-backdrop-filter: blur(1.5px) !important;
+#welcome-modal {
+    background: rgba(240, 249, 255, 0.94) !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    transition: opacity 0.2s ease;
+}
+
+#welcome-modal .modal-card {
+    transform: none !important;
+    transition: none !important;
+    border: 4.5px solid #FEF08A;
+    box-shadow: 0 20px 45px rgba(251, 133, 0, 0.12), 0 8px 20px rgba(0, 0, 0, 0.05);
+}
+
+/* ==========================================================================
+   Playa de los Cofres Mágicos (Escenario Storybook al lado del Mar)
+   ========================================================================== */
+
+.beach-stage {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 850;
+    display: none;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: stretch;
+    overflow: hidden;
+    user-select: none;
+    -webkit-user-select: none;
+    background: #60A5FA;
+}
+
+.beach-stage.active {
+    display: flex;
+}
+
+/* Scenery Container */
+.beach-scenery {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+    pointer-events: none;
+}
+
+/* Sunny Blue Sky */
+.beach-sky {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 52%;
+    background: linear-gradient(180deg, #38BDF8 0%, #7DD3FC 40%, #BAE6FD 100%);
+}
+
+.beach-sun {
+    position: absolute;
+    top: 20px;
+    right: 50px;
+    animation: gentleSpin 24s linear infinite;
+    filter: drop-shadow(0 4px 14px rgba(251, 133, 0, 0.45));
+}
+
+.beach-cloud {
+    position: absolute;
+    background: #FFFFFF;
+    border-radius: 60px;
+    opacity: 0.9;
+}
+
+.beach-cloud-1 {
+    width: 130px;
+    height: 44px;
+    top: 40px;
+    left: 8%;
+    animation: driftCloud 38s linear infinite;
+}
+.beach-cloud-1::before {
+    content: '';
+    position: absolute;
+    width: 55px;
+    height: 55px;
+    background: #FFF;
+    border-radius: 50%;
+    top: -24px;
+    left: 20px;
+}
+.beach-cloud-1::after {
+    content: '';
+    position: absolute;
+    width: 40px;
+    height: 40px;
+    background: #FFF;
+    border-radius: 50%;
+    top: -16px;
+    left: 60px;
+}
+
+.beach-cloud-2 {
+    width: 170px;
+    height: 50px;
+    top: 85px;
+    left: 58%;
+    animation: driftCloud 48s linear infinite 8s;
+}
+.beach-cloud-2::before {
+    content: '';
+    position: absolute;
+    width: 65px;
+    height: 65px;
+    background: #FFF;
+    border-radius: 50%;
+    top: -28px;
+    left: 28px;
+}
+.beach-cloud-2::after {
+    content: '';
+    position: absolute;
+    width: 48px;
+    height: 48px;
+    background: #FFF;
+    border-radius: 50%;
+    top: -18px;
+    left: 80px;
+}
+
+.beach-palm {
+    position: absolute;
+    top: -15px;
+    left: -20px;
+    font-size: 5.5rem;
+    transform: rotate(20deg);
+    filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.12));
+    animation: swayPalm 4s ease-in-out infinite alternate;
+}
+
+@keyframes swayPalm {
+    from { transform: rotate(16deg); }
+    to { transform: rotate(24deg); }
+}
+
+/* Turquoise Ocean with Animated Waves */
+.beach-ocean {
+    position: absolute;
+    top: 44%;
+    left: 0;
+    width: 100%;
+    height: 22%;
+    background: linear-gradient(180deg, #0284C7 0%, #0EA5E9 40%, #38BDF8 100%);
+}
+
+.ocean-wave {
+    position: absolute;
+    width: 200%;
+    height: 38px;
+}
+
+.wave-back {
+    bottom: 20px;
+    left: 0;
+    background: linear-gradient(180deg, rgba(56, 189, 248, 0.95) 0%, rgba(14, 165, 233, 0.95) 100%);
+    border-top: 3.5px solid rgba(255, 255, 255, 0.85);
+    border-radius: 50% 50% 0 0 / 100% 100% 0 0;
+    animation: waveRoll 6s ease-in-out infinite alternate;
+}
+
+.wave-front {
+    bottom: 0;
+    left: -15%;
+    background: linear-gradient(180deg, #38BDF8 0%, #7DD3FC 100%);
+    border-top: 5px solid #FFFFFF;
+    border-radius: 50% 50% 0 0 / 100% 100% 0 0;
+    animation: waveRoll 4.2s ease-in-out infinite alternate-reverse;
+}
+
+@keyframes waveRoll {
+    0% { transform: translateX(0) translateY(0); }
+    100% { transform: translateX(-55px) translateY(6px); }
+}
+
+/* Golden Sand Shore */
+.beach-sand {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 44%;
+    background: linear-gradient(180deg, #FEF08A 0%, #FDE047 30%, #F59E0B 100%);
+    box-shadow: inset 0 8px 16px rgba(217, 119, 6, 0.2);
+}
+
+.sand-prop {
+    position: absolute;
+    filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.15));
+}
+
+.prop-shell {
+    bottom: 22px;
+    left: 6%;
+    font-size: 2.2rem;
+    animation: cuteBounce 4s ease-in-out infinite;
+}
+
+.prop-starfish {
+    bottom: 34px;
+    right: 10%;
+    font-size: 2.4rem;
+    animation: starPulse 3s ease-in-out infinite;
+}
+
+.prop-crab {
+    bottom: 18px;
+    right: 25%;
+    font-size: 2rem;
+    animation: gentleWobble 4.5s ease-in-out infinite;
+}
+
+/* Beach Top Header */
+.beach-header {
+    position: relative;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 20px;
+    gap: 12px;
+}
+
+.beach-icon-btn {
+    background: #FFFFFF;
+    border: 3px solid #FFF;
+    border-radius: 50%;
+    width: 48px;
+    height: 48px;
+    font-size: 1.5rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 6px 14px rgba(0, 0, 0, 0.12);
+    transition: transform 0.15s ease;
+}
+
+.beach-icon-btn:hover {
+    transform: scale(1.12);
+}
+
+.beach-icon-btn:active {
+    transform: scale(0.92);
+}
+
+.beach-category-selector {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: rgba(255, 255, 255, 0.95);
+    padding: 6px 18px;
+    border-radius: var(--radius-pill);
+    border: 3px solid #FFF;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+}
+
+.theme-nav-arrow {
+    background: #F1F5F9;
+    border: none;
+    border-radius: 50%;
+    width: 34px;
+    height: 34px;
+    cursor: pointer;
+    font-size: 1.05rem;
+    color: #0369A1;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.15s ease, background 0.15s;
+}
+
+.theme-nav-arrow:hover {
+    background: #E0F2FE;
+    transform: scale(1.15);
+}
+
+.theme-nav-arrow:active {
+    transform: scale(0.9);
+}
+
+.beach-theme-badge {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: 'Fredoka', cursive, sans-serif;
+    font-size: 1.35rem;
+    font-weight: 700;
+    color: #0F172A;
+}
+
+.beach-counter {
+    background: #FFFFFF;
+    border: 3px solid #FFF;
+    border-radius: var(--radius-pill);
+    padding: 8px 18px;
+    font-family: 'Fredoka', cursive, sans-serif;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #92400E;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    box-shadow: 0 6px 14px rgba(0, 0, 0, 0.1);
+}
+
+.counter-star {
+    font-size: 1.35rem;
+    animation: starPulse 2.5s ease-in-out infinite;
+}
+
+/* Prompt Banner */
+.beach-prompt {
+    position: relative;
+    z-index: 10;
+    text-align: center;
+    margin-top: 2px;
+}
+
+.beach-prompt span {
+    display: inline-block;
+    background: rgba(255, 255, 255, 0.94);
+    border: 2.5px solid #FFF;
+    border-radius: var(--radius-pill);
+    padding: 6px 26px;
+    font-family: 'Quicksand', sans-serif;
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: #1E293B;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+}
+
+/* ==========================================================================
+   The 5 Chests on the Beach
+   ========================================================================== */
+
+.beach-chests-row {
+    position: relative;
+    z-index: 10;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    gap: 18px;
+    padding: 10px 20px 20px;
+    flex: 1;
+    max-width: 1050px;
+    margin: 0 auto;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.beach-chest-item {
+    flex: 1;
+    max-width: 175px;
+    min-width: 110px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    cursor: pointer;
+    position: relative;
+    transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+    -webkit-tap-highlight-color: transparent;
+}
+
+.beach-chest-item:hover {
+    transform: translateY(-8px) scale(1.04);
+}
+
+.beach-chest-item:active {
+    transform: translateY(2px) scale(0.94);
+}
+
+/* Chest Star Badge */
+.chest-star-badge {
+    font-size: 1.8rem;
+    line-height: 1;
+    opacity: 0;
+    transform: scale(0);
+    transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+    margin-bottom: 2px;
+    filter: drop-shadow(0 2px 6px rgba(245, 158, 11, 0.5));
+}
+
+.beach-chest-item.opened .chest-star-badge {
+    opacity: 1;
+    transform: scale(1);
+    animation: starPulse 2.5s ease-in-out infinite;
+}
+
+/* Chest SVG Graphic */
+.toy-chest-svg {
+    width: 100%;
+    max-width: 155px;
+    height: auto;
+    filter: drop-shadow(0 10px 16px rgba(180, 83, 9, 0.35));
+    transition: transform 0.3s ease, filter 0.3s ease;
+}
+
+.beach-chest-item.opened .toy-chest-svg {
+    filter: drop-shadow(0 14px 22px rgba(245, 158, 11, 0.5));
+}
+
+.chest-glow-aura {
+    animation: gentlePulse 2s ease-in-out infinite;
+}
+
+@keyframes gentlePulse {
+    0%, 100% { opacity: 0.65; transform: scale(1); }
+    50% { opacity: 0.95; transform: scale(1.05); }
+}
+
+/* Chest Tag / Label */
+.chest-tag {
+    background: rgba(255, 255, 255, 0.95);
+    border: 2.5px solid #FDE047;
+    border-radius: var(--radius-pill);
+    padding: 4px 14px;
+    margin-top: 6px;
+    font-family: 'Fredoka', cursive, sans-serif;
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: #78350F;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.25s ease;
+}
+
+.beach-chest-item.opened .chest-tag {
+    background: linear-gradient(135deg, #10B981, #059669);
+    border-color: #FFF;
+    color: #FFF;
+    box-shadow: 0 6px 14px rgba(16, 185, 129, 0.35);
+}
+
+.chest-num {
+    display: inline-block;
+    width: 22px;
+    height: 22px;
+    background: #FEF08A;
+    color: #92400E;
+    border-radius: 50%;
+    text-align: center;
+    line-height: 22px;
+    font-size: 0.9rem;
+    font-weight: 700;
+}
+
+.beach-chest-item.opened .chest-num {
+    background: rgba(255, 255, 255, 0.3);
+    color: #FFF;
+}
+
+.chest-word-peek {
+    letter-spacing: 0.5px;
+}
+
+/* Bottom Action Bar */
+.beach-bottom-bar {
+    position: relative;
+    z-index: 10;
+    display: flex;
+    justify-content: center;
+    padding: 10px 20px 22px;
+}
+
+.btn-beach-play {
+    background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+    color: #FFF;
+    border: 3.5px solid #FFF;
+    border-radius: var(--radius-pill);
+    padding: 16px 44px;
+    font-family: 'Fredoka', cursive, sans-serif;
+    font-size: 1.5rem;
+    font-weight: 700;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    box-shadow: 0 7px 0 #047857, 0 14px 26px rgba(16, 185, 129, 0.4);
+    transition: transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.18s ease;
+}
+
+.btn-beach-play:hover {
+    transform: translateY(-3px) scale(1.03);
+}
+
+.btn-beach-play:active {
+    transform: translateY(4px);
+    box-shadow: 0 2px 0 #047857, 0 6px 12px rgba(16, 185, 129, 0.3);
+}
+
+.play-icon, .play-arrow {
+    font-size: 1.6rem;
+}
+
+/* ==========================================================================
+   Floating 3D Flashcard Overlay
+   ========================================================================== */
+
+.beach-card-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(15, 23, 42, 0.45);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    z-index: 1500;
     display: none;
     align-items: center;
     justify-content: center;
     padding: 16px;
-    z-index: 1200;
+    box-sizing: border-box;
+    animation: fadeIn 0.25s ease;
 }
 
-#magic-chest-modal.active {
+.beach-card-overlay.active {
     display: flex;
 }
 
-/* Enchanted Toy Chest in the Hills */
-.chest-card {
-    max-width: 520px;
-    width: 95%;
+.beach-card-wrapper {
     background: linear-gradient(180deg, #FFFFFF 0%, #FFFDF5 60%, #FFF5E4 100%);
     border-radius: 36px;
-    padding: 24px 22px 20px;
-    box-shadow: 0 16px 0 #D48C5B, 0 25px 50px rgba(0, 0, 0, 0.2);
-    border: 5px solid #F4A261;
+    border: 5px solid #FBBF24;
+    padding: 24px 24px 18px;
+    max-width: 440px;
+    width: 92%;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.25), 0 8px 0 #D97706;
     position: relative;
     display: flex;
     flex-direction: column;
-    align-items: stretch;
-    animation: chestPopIn 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+    align-items: center;
+    animation: cardPopIn 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
-@keyframes chestPopIn {
-    0% { transform: scale(0.85) translateY(30px); opacity: 0; }
+@keyframes cardPopIn {
+    0% { transform: scale(0.7) translateY(40px); opacity: 0; }
     100% { transform: scale(1) translateY(0); opacity: 1; }
 }
 
-@keyframes chestCardFloat {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-7px); }
-}
-
-.chest-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 12px;
-    padding: 0 4px;
-}
-
-.chest-theme-badge {
-    background: linear-gradient(135deg, #FFE5D9, #FFD8CC);
-    color: #D06A4C;
-    padding: 8px 18px;
-    border-radius: 20px;
+.btn-card-close {
+    position: absolute;
+    top: 14px;
+    right: 16px;
+    background: #F1F5F9;
+    border: 2px solid #CBD5E1;
+    border-radius: 50%;
+    width: 38px;
+    height: 38px;
+    font-size: 1.2rem;
     font-weight: 700;
-    font-size: 1.05rem;
+    color: #64748B;
+    cursor: pointer;
     display: flex;
     align-items: center;
-    gap: 8px;
-    box-shadow: 0 2px 6px rgba(208, 106, 76, 0.15);
+    justify-content: center;
+    transition: transform 0.15s ease;
 }
 
-.chest-counter {
-    background: #FFFFFF;
-    color: #495057;
-    padding: 6px 14px;
-    border-radius: 16px;
-    font-weight: 700;
-    font-size: 0.95rem;
-    border: 2px solid #E8ECEF;
+.btn-card-close:hover {
+    transform: scale(1.1);
+    color: #0F172A;
 }
 
 /* 3D Flip Card Container */
-.chest-card-stage {
-    perspective: 1200px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    margin: 10px 0 18px;
-    min-height: 290px;
-}
-
-.flashcard-3d {
+.beach-card-wrapper .flashcard-3d {
     width: 100%;
     max-width: 380px;
-    height: 280px;
+    height: 275px;
     position: relative;
+    perspective: 1200px;
     transform-style: preserve-3d;
     transition: transform 0.65s cubic-bezier(0.34, 1.56, 0.64, 1);
     cursor: pointer;
-    animation: chestCardFloat 3.5s ease-in-out infinite;
+    margin: 10px 0 16px;
     -webkit-tap-highlight-color: transparent;
 }
 
-.flashcard-3d.flipped {
+.beach-card-wrapper .flashcard-3d.flipped {
     transform: rotateY(180deg);
-    animation: none;
 }
 
-.card-face {
+.beach-card-wrapper .card-face {
     position: absolute;
     top: 0;
     left: 0;
@@ -1276,7 +1774,7 @@ html, body {
     height: 100%;
     backface-visibility: hidden;
     -webkit-backface-visibility: hidden;
-    border-radius: 24px;
+    border-radius: 26px;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -1286,36 +1784,35 @@ html, body {
     box-shadow: 0 12px 28px rgba(0, 0, 0, 0.08);
 }
 
-.card-front {
+.beach-card-wrapper .card-front {
     background: linear-gradient(135deg, #FFF9EB 0%, #FFFFFF 100%);
     border: 4px solid #FFD166;
 }
 
-.card-back {
+.beach-card-wrapper .card-back {
     background: linear-gradient(135deg, #F0F9FF 0%, #FFFFFF 100%);
     border: 4px solid #48CAE4;
     transform: rotateY(180deg);
 }
 
-.card-hint {
-    font-size: 0.9rem;
+.beach-card-wrapper .card-hint {
+    font-size: 0.92rem;
     color: #FB8500;
     font-weight: 700;
-    margin-bottom: 8px;
-    animation: cuteBounce 2s infinite ease-in-out;
+    margin-bottom: 6px;
 }
 
-.card-word {
+.beach-card-wrapper .card-word {
     font-family: 'Fredoka', cursive, sans-serif;
     font-size: 3.4rem;
     color: #264653;
-    margin: 10px 0;
+    margin: 8px 0;
     font-weight: 700;
     letter-spacing: 1px;
     text-align: center;
 }
 
-.card-word-back {
+.beach-card-wrapper .card-word-back {
     font-family: 'Fredoka', cursive, sans-serif;
     font-size: 2.2rem;
     color: #E76F51;
@@ -1324,22 +1821,22 @@ html, body {
     letter-spacing: 0.5px;
 }
 
-.card-image-box {
-    width: 130px;
-    height: 130px;
+.beach-card-wrapper .card-image-box {
+    width: 125px;
+    height: 125px;
     display: flex;
     align-items: center;
     justify-content: center;
 }
 
-.card-image-box img {
+.beach-card-wrapper .card-image-box img {
     max-width: 100%;
     max-height: 100%;
     object-fit: contain;
     filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.15));
 }
 
-.card-audio-btn {
+.beach-card-wrapper .card-audio-btn {
     background: #FFD166;
     border: 3px solid #FFF;
     border-radius: 50%;
@@ -1355,89 +1852,49 @@ html, body {
     margin-top: 6px;
 }
 
-.card-audio-btn.small {
+.beach-card-wrapper .card-audio-btn.small {
     width: 44px;
     height: 44px;
     font-size: 1.2rem;
 }
 
-.card-audio-btn:active {
+.beach-card-wrapper .card-audio-btn:active {
     transform: scale(0.9);
 }
 
-.tap-invite {
+.beach-card-wrapper .tap-invite {
     font-size: 0.85rem;
     color: #8D5B4C;
     font-weight: 600;
-    margin-top: 10px;
+    margin-top: 8px;
     opacity: 0.8;
 }
 
-/* Controls */
-.chest-controls {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 20px;
-    margin-bottom: 12px;
-}
-
-.chest-nav-btn {
-    background: #FFFFFF;
-    border: 3px solid #E8ECEF;
-    border-radius: 20px;
-    width: 64px;
-    height: 64px;
-    font-size: 1.8rem;
+.beach-card-actions {
     display: flex;
     align-items: center;
     justify-content: center;
-    cursor: pointer;
-    box-shadow: 0 4px 0 #CED4DA, 0 6px 14px rgba(0, 0, 0, 0.08);
-    transition: transform 0.15s ease, box-shadow 0.15s ease;
-}
-
-.chest-nav-btn:active {
-    transform: translateY(3px);
-    box-shadow: 0 1px 0 #CED4DA, 0 2px 6px rgba(0, 0, 0, 0.06);
-}
-
-.chest-action-btn {
-    background: linear-gradient(135deg, #48CAE4, #0096C7);
-    color: #FFF;
-    border: none;
-    border-radius: 20px;
-    padding: 14px 28px;
-    font-size: 1.15rem;
-    font-weight: 700;
-    cursor: pointer;
-    box-shadow: 0 4px 0 #0077B6, 0 8px 16px rgba(0, 150, 199, 0.3);
-    transition: transform 0.15s ease;
-}
-
-.chest-action-btn:active {
-    transform: translateY(3px);
-    box-shadow: 0 1px 0 #0077B6;
-}
-
-.btn-chest-play {
+    gap: 16px;
+    margin-top: 10px;
     width: 100%;
-    background: linear-gradient(135deg, #06D6A0, #05A87D);
-    color: #FFFFFF;
-    border: none;
-    border-radius: 20px;
-    padding: 16px 20px;
-    font-size: 1.25rem;
-    font-weight: 700;
-    font-family: 'Fredoka', cursive, sans-serif;
-    cursor: pointer;
-    box-shadow: 0 5px 0 #048A66, 0 10px 20px rgba(6, 214, 160, 0.35);
-    transition: transform 0.15s ease;
 }
 
-.btn-chest-play:active {
-    transform: translateY(3px);
-    box-shadow: 0 2px 0 #048A66;
+.btn-card-done {
+    margin-top: 10px;
+    background: transparent;
+    border: none;
+    color: #8D5B4C;
+    font-family: 'Quicksand', sans-serif;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    padding: 6px 14px;
+    transition: opacity 0.2s;
+}
+
+.btn-card-done:hover {
+    text-decoration: underline;
+    opacity: 0.9;
 }
 
 /* ==========================================================================
@@ -1494,6 +1951,25 @@ html, body {
     .word-card {
         padding: 12px 26px;
         font-size: 1.6rem;
+    }
+
+    .beach-chests-row {
+        gap: 12px;
+        padding: 6px 12px 16px;
+    }
+
+    .beach-chest-item {
+        max-width: 140px;
+        min-width: 95px;
+    }
+
+    .btn-beach-play {
+        padding: 14px 34px;
+        font-size: 1.35rem;
+    }
+
+    .beach-theme-badge {
+        font-size: 1.15rem;
     }
 }
 
@@ -1561,5 +2037,37 @@ html, body {
 
     .choice-desc {
         font-size: 0.82rem;
+    }
+
+    .beach-chests-row {
+        flex-wrap: wrap;
+        gap: 10px;
+        justify-content: center;
+    }
+
+    .beach-chest-item {
+        flex: 0 1 calc(33.3% - 10px);
+        max-width: 110px;
+        min-width: 80px;
+    }
+
+    .chest-tag {
+        font-size: 0.92rem;
+        padding: 3px 8px;
+    }
+
+    .btn-beach-play {
+        padding: 12px 20px;
+        font-size: 1.15rem;
+        width: 94%;
+        justify-content: center;
+    }
+
+    .beach-card-wrapper .card-word {
+        font-size: 2.6rem;
+    }
+
+    .beach-card-wrapper .flashcard-3d {
+        height: 240px;
     }
 }

@@ -246,6 +246,38 @@ class AudioService {
     }
 
     /**
+     * Synthesize a magical chest open harp sparkle sound
+     */
+    playChestOpen() {
+        if (!this.enabled || !this.audioCtx) return;
+        try {
+            const now = this.audioCtx.currentTime;
+            // Ethereal pentatonic harp chime: D5 - F#5 - A5 - D6 - F#6
+            const freqs = [587.33, 739.99, 880.00, 1174.66, 1479.98];
+            freqs.forEach((freq, idx) => {
+                const noteTime = now + idx * 0.055;
+                const osc = this.audioCtx.createOscillator();
+                const gain = this.audioCtx.createGain();
+
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(freq, noteTime);
+
+                gain.gain.setValueAtTime(0, noteTime);
+                gain.gain.linearRampToValueAtTime(0.22, noteTime + 0.02);
+                gain.gain.exponentialRampToValueAtTime(0.001, noteTime + 0.45);
+
+                osc.connect(gain);
+                gain.connect(this.audioCtx.destination);
+
+                osc.start(noteTime);
+                osc.stop(noteTime + 0.45);
+            });
+        } catch (e) {
+            console.debug('Audio error:', e);
+        }
+    }
+
+    /**
      * Synthesize a sweet celestial chime when matching a word
      */
     playSuccess() {

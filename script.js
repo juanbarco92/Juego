@@ -39,30 +39,41 @@ const closeParentBtn = document.getElementById('close-parent-btn');
 const homeMenuBtn = document.getElementById('home-menu-btn');
 const welcomeParentsBtn = document.getElementById('welcome-parents-btn');
 
-// Magic Chest Elements
+// Beach of 5 Magical Chests Elements
 const magicChestNavBtn = document.getElementById('magic-chest-nav-btn');
 const startChestBtn = document.getElementById('start-chest-btn');
-const magicChestModal = document.getElementById('magic-chest-modal');
-const closeChestBtn = document.getElementById('close-chest-btn');
-const chestThemeBadge = document.getElementById('chest-theme-badge');
-const chestThemeIcon = document.getElementById('chest-theme-icon');
-const chestThemeName = document.getElementById('chest-theme-name');
-const chestCounter = document.getElementById('chest-counter');
-const magicFlashcard = document.getElementById('magic-flashcard');
-const chestWordFront = document.getElementById('chest-word-front');
-const chestWordBack = document.getElementById('chest-word-back');
-const chestImgBack = document.getElementById('chest-img-back');
-const chestAudioFrontBtn = document.getElementById('chest-audio-front-btn');
-const chestAudioBackBtn = document.getElementById('chest-audio-back-btn');
-const chestPrevBtn = document.getElementById('chest-prev-btn');
-const chestFlipBtn = document.getElementById('chest-flip-btn');
-const chestNextBtn = document.getElementById('chest-next-btn');
-const chestPlayNowBtn = document.getElementById('chest-play-now-btn');
-const chestCardStage = document.getElementById('chest-card-stage');
+const magicBeachStage = document.getElementById('magic-beach-stage');
+const beachBackHomeBtn = document.getElementById('beach-back-home-btn');
+const beachThemePrev = document.getElementById('beach-theme-prev');
+const beachThemeNext = document.getElementById('beach-theme-next');
+const beachThemeBadge = document.getElementById('beach-theme-badge');
+const beachThemeIcon = document.getElementById('beach-theme-icon');
+const beachThemeName = document.getElementById('beach-theme-name');
+const beachOpenedCount = document.getElementById('beach-opened-count');
+const beachTotalCount = document.getElementById('beach-total-count');
+const beachChestsRow = document.getElementById('beach-chests-row');
+const beachPlayGameBtn = document.getElementById('beach-play-game-btn');
 
-let chestWords = [];
-let currentChestIndex = 0;
-let currentChestUnit = null;
+// Floating 3D Flashcard Overlay
+const beachCardOverlay = document.getElementById('beach-card-overlay');
+const closeBeachCardBtn = document.getElementById('close-beach-card-btn');
+const beachFlashcard = document.getElementById('beach-flashcard');
+const beachWordFront = document.getElementById('beach-word-front');
+const beachAudioFrontBtn = document.getElementById('beach-audio-front-btn');
+const beachImgBack = document.getElementById('beach-img-back');
+const beachWordBack = document.getElementById('beach-word-back');
+const beachAudioBackBtn = document.getElementById('beach-audio-back-btn');
+const beachCardPrev = document.getElementById('beach-card-prev');
+const beachCardFlip = document.getElementById('beach-card-flip');
+const beachCardNext = document.getElementById('beach-card-next');
+const beachCardDone = document.getElementById('beach-card-done');
+
+let beachUnits = [];
+let currentBeachUnitIndex = 0;
+let currentBeachUnit = null;
+let beachWords = [];
+let currentCardIndex = 0;
+const openedChestsMap = new Map(); // unitId -> Set of opened indices
 
 // Parent Zone Elements
 const parentGateChallenge = document.getElementById('parent-gate-challenge');
@@ -100,6 +111,15 @@ async function initApp() {
 
         // 4. Setup Callbacks
         setupGameCallbacks();
+
+        // 5. Initial position for Sun Marker (no glitch/jump on load)
+        if (sunMarker && gameEngine && gameEngine.sessionController) {
+            sunMarker.style.transition = 'none';
+            onSessionUpdate(gameEngine.sessionController.getState());
+            setTimeout(() => {
+                if (sunMarker) sunMarker.style.transition = 'left 1s ease-out';
+            }, 300);
+        }
 
         console.log('✅ Emma Aprende inicializado con éxito');
     } catch (error) {
@@ -167,17 +187,28 @@ function setupUIEventListeners() {
                 setupGameCallbacks();
             }
 
-            await gameEngine.startSession();
+            // If session already active, continue without resetting clock!
+            if (!gameEngine.sessionController.sessionActive) {
+                await gameEngine.startSession();
+            } else {
+                if (gameEngine.sessionController.isPaused) {
+                    gameEngine.sessionController.resumeSession();
+                }
+                if (!gameEngine.currentLevel) {
+                    await gameEngine.loadNextLevel();
+                }
+            }
         } catch (err) {
             console.error('❌ Error al iniciar sesión:', err);
         }
     });
 
-    // Home & Main Menu Return
+    // Home & Main Menu Return (Preserves clock & playtime!)
     if (homeMenuBtn) {
         homeMenuBtn.addEventListener('click', () => {
             if (audioService) audioService.playPop();
-            if (magicChestModal) magicChestModal.classList.remove('active');
+            if (magicBeachStage) magicBeachStage.classList.remove('active');
+            if (beachCardOverlay) beachCardOverlay.classList.remove('active');
             if (parentModal) parentModal.classList.remove('active');
             if (restModal) restModal.classList.remove('active');
             if (welcomeModal) {
@@ -193,67 +224,81 @@ function setupUIEventListeners() {
         });
     }
 
-    // Magic Chest Launchers & Controls
+    // Beach of 5 Magical Chests - Launchers & Controls
     if (startChestBtn) {
-        startChestBtn.addEventListener('click', () => openMagicChest());
+        startChestBtn.addEventListener('click', () => openMagicBeach());
     }
     if (magicChestNavBtn) {
-        magicChestNavBtn.addEventListener('click', () => openMagicChest());
+        magicChestNavBtn.addEventListener('click', () => openMagicBeach());
     }
-    if (closeChestBtn) {
-        closeChestBtn.addEventListener('click', closeMagicChest);
+    if (beachBackHomeBtn) {
+        beachBackHomeBtn.addEventListener('click', closeMagicBeach);
     }
-    if (chestFlipBtn) {
-        chestFlipBtn.addEventListener('click', flipChestCard);
+    if (beachThemePrev) {
+        beachThemePrev.addEventListener('click', prevBeachTheme);
     }
-    if (magicFlashcard) {
-        magicFlashcard.addEventListener('click', (e) => {
+    if (beachThemeNext) {
+        beachThemeNext.addEventListener('click', nextBeachTheme);
+    }
+    if (beachPlayGameBtn) {
+        beachPlayGameBtn.addEventListener('click', playFromBeach);
+    }
+
+    // Floating 3D Flashcard Overlay Controls
+    if (closeBeachCardBtn) {
+        closeBeachCardBtn.addEventListener('click', closeCardOverlay);
+    }
+    if (beachCardDone) {
+        beachCardDone.addEventListener('click', closeCardOverlay);
+    }
+    if (beachCardFlip) {
+        beachCardFlip.addEventListener('click', flipBeachCard);
+    }
+    if (beachFlashcard) {
+        beachFlashcard.addEventListener('click', (e) => {
             if (e.target.closest('.card-audio-btn')) return;
-            flipChestCard();
+            flipBeachCard();
         });
     }
-    if (chestPrevBtn) {
-        chestPrevBtn.addEventListener('click', prevChestCard);
+    if (beachCardPrev) {
+        beachCardPrev.addEventListener('click', prevBeachCard);
     }
-    if (chestNextBtn) {
-        chestNextBtn.addEventListener('click', nextChestCard);
+    if (beachCardNext) {
+        beachCardNext.addEventListener('click', nextBeachCard);
     }
-    if (chestPlayNowBtn) {
-        chestPlayNowBtn.addEventListener('click', playNowFromChest);
-    }
-    if (chestAudioFrontBtn) {
-        chestAudioFrontBtn.addEventListener('click', (e) => {
+    if (beachAudioFrontBtn) {
+        beachAudioFrontBtn.addEventListener('click', (e) => {
             e.stopPropagation();
-            if (chestWords[currentChestIndex] && audioService) {
-                audioService.speakWord(chestWords[currentChestIndex]);
+            if (beachWords[currentCardIndex] && audioService) {
+                audioService.speakWord(beachWords[currentCardIndex]);
             }
         });
     }
-    if (chestAudioBackBtn) {
-        chestAudioBackBtn.addEventListener('click', (e) => {
+    if (beachAudioBackBtn) {
+        beachAudioBackBtn.addEventListener('click', (e) => {
             e.stopPropagation();
-            if (chestWords[currentChestIndex] && audioService) {
-                audioService.speakWord(chestWords[currentChestIndex]);
+            if (beachWords[currentCardIndex] && audioService) {
+                audioService.speakWord(beachWords[currentCardIndex]);
             }
         });
     }
 
     // iPad touch swipe support for flashcards
-    if (chestCardStage) {
+    if (beachFlashcard) {
         let touchStartX = 0;
         let touchEndX = 0;
-        chestCardStage.addEventListener('touchstart', (e) => {
+        beachFlashcard.addEventListener('touchstart', (e) => {
             if (e.changedTouches && e.changedTouches[0]) {
                 touchStartX = e.changedTouches[0].screenX;
             }
         }, { passive: true });
-        chestCardStage.addEventListener('touchend', (e) => {
+        beachFlashcard.addEventListener('touchend', (e) => {
             if (e.changedTouches && e.changedTouches[0]) {
                 touchEndX = e.changedTouches[0].screenX;
                 if (touchStartX - touchEndX > 50) {
-                    nextChestCard();
+                    nextBeachCard();
                 } else if (touchEndX - touchStartX > 50) {
-                    prevChestCard();
+                    prevBeachCard();
                 }
             }
         }, { passive: true });
@@ -286,6 +331,9 @@ function setupUIEventListeners() {
     resetHistoryBtn.addEventListener('click', () => {
         if (confirm('¿Deseas reiniciar todo el historial de aprendizaje de Emma?')) {
             localStorage.clear();
+            if (gameEngine && gameEngine.sessionController) {
+                gameEngine.sessionController.resetSession();
+            }
             alert('Progreso reiniciado.');
             location.reload();
         }
@@ -810,123 +858,344 @@ function renderWordStatsDashboard(filter = 'all') {
 
 /**
  * ==========================================================================
- * Cofre Mágico (Flashcards 3D de Descubrimiento y Aprendizaje - Glenn Doman)
+ * Playa de los Cofres Mágicos (Módulo de Descubrimiento de Palabras 3D)
  * ==========================================================================
  */
 
 /**
- * Open Magic Chest presentation mode
- * @param {Object|null} targetUnit - Specific unit to present, or current/first unit
+ * Generate 3D toy chest SVG markup (Closed or Open with radiant treasures)
+ * @param {boolean} isOpen 
+ * @returns {string} SVG HTML string
  */
-function openMagicChest(targetUnit = null) {
+function generateChestSvg(isOpen = false) {
+    if (isOpen) {
+        return `
+        <svg viewBox="0 0 140 120" class="toy-chest-svg">
+            <defs>
+                <linearGradient id="woodGradOpen" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stop-color="#B46A34"/>
+                    <stop offset="100%" stop-color="#6F3610"/>
+                </linearGradient>
+                <linearGradient id="goldGradO" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stop-color="#FEF08A"/>
+                    <stop offset="60%" stop-color="#F59E0B"/>
+                    <stop offset="100%" stop-color="#D97706"/>
+                </linearGradient>
+                <radialGradient id="chestGlow" cx="50%" cy="50%" r="50%">
+                    <stop offset="0%" stop-color="#FEF08A" stop-opacity="1"/>
+                    <stop offset="60%" stop-color="#FDE047" stop-opacity="0.6"/>
+                    <stop offset="100%" stop-color="#F59E0B" stop-opacity="0"/>
+                </radialGradient>
+            </defs>
+            <!-- Radiating golden light aura -->
+            <ellipse cx="70" cy="46" rx="55" ry="34" fill="url(#chestGlow)" class="chest-glow-aura"/>
+            <polygon points="70,45 28,10 42,5" fill="#FEF08A" opacity="0.65"/>
+            <polygon points="70,45 98,5 112,10" fill="#FEF08A" opacity="0.65"/>
+            <polygon points="70,45 60,0 80,0" fill="#FEF08A" opacity="0.85"/>
+            <!-- Open Lid (tilted upwards) -->
+            <path d="M22 26 Q70 6 118 26 L114 40 Q70 20 26 40 Z" fill="url(#woodGradOpen)" stroke="#451A03" stroke-width="2.5"/>
+            <path d="M40 20 Q70 10 100 20 L98 26 Q70 16 42 26 Z" fill="url(#goldGradO)"/>
+            <!-- Chest Base -->
+            <rect x="20" y="46" width="100" height="54" rx="12" fill="url(#woodGradOpen)" stroke="#451A03" stroke-width="2.5"/>
+            <!-- Gold Straps & Rivets -->
+            <rect x="36" y="46" width="12" height="54" fill="url(#goldGradO)"/>
+            <rect x="92" y="46" width="12" height="54" fill="url(#goldGradO)"/>
+            <circle cx="42" cy="54" r="2.5" fill="#78350F"/>
+            <circle cx="42" cy="90" r="2.5" fill="#78350F"/>
+            <circle cx="98" cy="54" r="2.5" fill="#78350F"/>
+            <circle cx="98" cy="90" r="2.5" fill="#78350F"/>
+            <!-- Sparkles & Coins Inside -->
+            <ellipse cx="70" cy="50" rx="36" ry="12" fill="#FDE047"/>
+            <circle cx="58" cy="48" r="5" fill="#F59E0B"/>
+            <circle cx="72" cy="46" r="6" fill="#FBBF24"/>
+            <circle cx="84" cy="49" r="5.5" fill="#FDE047"/>
+            <text x="63" y="42" font-size="14">✨</text>
+            <!-- Gold Clasp -->
+            <rect x="63" y="46" width="14" height="18" rx="4" fill="url(#goldGradO)" stroke="#78350F" stroke-width="1.5"/>
+            <circle cx="70" cy="55" r="2.5" fill="#451A03"/>
+        </svg>
+        `;
+    } else {
+        return `
+        <svg viewBox="0 0 140 120" class="toy-chest-svg">
+            <defs>
+                <linearGradient id="woodGradClosed" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stop-color="#C07238"/>
+                    <stop offset="60%" stop-color="#8D4919"/>
+                    <stop offset="100%" stop-color="#5C2607"/>
+                </linearGradient>
+                <linearGradient id="goldGradC" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stop-color="#FEF08A"/>
+                    <stop offset="50%" stop-color="#F59E0B"/>
+                    <stop offset="100%" stop-color="#B45309"/>
+                </linearGradient>
+            </defs>
+            <!-- Chest Base -->
+            <rect x="20" y="52" width="100" height="50" rx="10" fill="url(#woodGradClosed)" stroke="#3D1804" stroke-width="2.5"/>
+            <!-- Closed Rounded Lid -->
+            <path d="M18 54 Q70 20 122 54 L120 58 Q70 28 20 58 Z" fill="url(#woodGradClosed)" stroke="#3D1804" stroke-width="2.5"/>
+            <path d="M22 50 C24 26 58 20 70 20 C82 20 116 26 118 50 Z" fill="url(#woodGradClosed)" opacity="0.96"/>
+            <!-- Gold Straps & Rivets -->
+            <path d="M36 28 C38 38 38 48 38 102 L48 102 C48 48 48 38 46 28 Z" fill="url(#goldGradC)"/>
+            <path d="M92 28 C94 38 94 48 94 102 L104 102 C104 48 104 38 102 28 Z" fill="url(#goldGradC)"/>
+            <circle cx="42" cy="38" r="2.5" fill="#78350F"/>
+            <circle cx="42" cy="68" r="2.5" fill="#78350F"/>
+            <circle cx="42" cy="94" r="2.5" fill="#78350F"/>
+            <circle cx="98" cy="38" r="2.5" fill="#78350F"/>
+            <circle cx="98" cy="68" r="2.5" fill="#78350F"/>
+            <circle cx="98" cy="94" r="2.5" fill="#78350F"/>
+            <!-- Big Golden Keyhole Padlock -->
+            <rect x="61" y="46" width="18" height="24" rx="5" fill="url(#goldGradC)" stroke="#78350F" stroke-width="2"/>
+            <circle cx="70" cy="56" r="3" fill="#451A03"/>
+            <polygon points="69,56 71,56 72,63 68,63" fill="#451A03"/>
+        </svg>
+        `;
+    }
+}
+
+/**
+ * Get available units from curriculum
+ */
+function getCurriculumUnits() {
+    if (window.ACTIVE_CURRICULUM && window.ACTIVE_CURRICULUM.units) {
+        return window.ACTIVE_CURRICULUM.units;
+    }
+    if (gameEngine && gameEngine.curriculum && gameEngine.curriculum.units) {
+        return gameEngine.curriculum.units;
+    }
+    return [
+        { id: "familia", name: "Mi Familia", icon: "👨‍👩‍👧", words: ["Mamá", "Papá", "Emma", "bebé", "tetero"] },
+        { id: "mascotas", name: "Mis Mascotas", icon: "🐾", words: ["perro", "gato", "conejo", "pollito", "pato"] },
+        { id: "frutas", name: "Frutas y Meriendas", icon: "🍓", words: ["manzana", "fresa", "plátano", "uvas", "helado"] }
+    ];
+}
+
+/**
+ * Open the Beach of 5 Chests
+ * @param {Object|null} targetUnit - Specific unit to open
+ */
+function openMagicBeach(targetUnit = null) {
     if (audioService) audioService.playPop();
 
-    // Close welcome modal if open
+    // Close welcome modal
     if (welcomeModal) {
         welcomeModal.classList.remove('active');
         welcomeModal.style.display = 'none';
     }
 
-    // Get units from curriculum
-    let units = (window.ACTIVE_CURRICULUM && window.ACTIVE_CURRICULUM.units) ? window.ACTIVE_CURRICULUM.units : [];
-    if (units.length === 0 && gameEngine && gameEngine.curriculum && gameEngine.curriculum.units) {
-        units = gameEngine.curriculum.units;
-    }
+    beachUnits = getCurriculumUnits();
 
     if (targetUnit) {
-        currentChestUnit = targetUnit;
-    } else if (gameEngine && gameEngine.currentLevel && gameEngine.currentLevel.data) {
-        const currentUnitId = gameEngine.currentLevel.data.unitId;
-        currentChestUnit = units.find(u => u.id === currentUnitId) || units[0];
-    } else {
-        currentChestUnit = units[0] || {
-            name: "Mi Familia",
-            icon: "👨‍👩‍👧",
-            words: ["Mamá", "Papá", "Emma"]
-        };
+        currentBeachUnitIndex = beachUnits.findIndex(u => u.id === targetUnit.id);
+        if (currentBeachUnitIndex === -1) currentBeachUnitIndex = 0;
+    } else if (!currentBeachUnit) {
+        // Default to current game level unit or first unit
+        if (gameEngine && gameEngine.currentLevel && gameEngine.currentLevel.data) {
+            const currentUnitId = gameEngine.currentLevel.data.unitId;
+            currentBeachUnitIndex = beachUnits.findIndex(u => u.id === currentUnitId);
+            if (currentBeachUnitIndex === -1) currentBeachUnitIndex = 0;
+        } else {
+            currentBeachUnitIndex = 0;
+        }
     }
 
-    chestWords = currentChestUnit.words ? [...currentChestUnit.words] : ["Mamá", "Papá", "Emma"];
-    currentChestIndex = 0;
-
-    // Preload words in memory for instantaneous 0ms audio playback
-    if (audioService && chestWords.length > 0) {
-        audioService.preloadWords(chestWords);
-    }
-
-    magicChestModal.classList.add('active');
-    renderChestCard();
+    selectBeachUnit(currentBeachUnitIndex);
+    magicBeachStage.classList.add('active');
 }
 
 /**
- * Close Magic Chest
+ * Close the Beach stage and return to home
  */
-function closeMagicChest() {
+function closeMagicBeach() {
     if (audioService) audioService.playPop();
-    magicChestModal.classList.remove('active');
+    if (magicBeachStage) magicBeachStage.classList.remove('active');
+    if (beachCardOverlay) beachCardOverlay.classList.remove('active');
+    if (welcomeModal) {
+        welcomeModal.classList.add('active');
+        welcomeModal.style.display = 'flex';
+    }
 }
 
 /**
- * Render the current flashcard in the Magic Chest
+ * Select active beach unit
+ * @param {number} index 
  */
-function renderChestCard() {
-    if (!chestWords || chestWords.length === 0) return;
-    const currentWord = chestWords[currentChestIndex];
+function selectBeachUnit(index) {
+    beachUnits = getCurriculumUnits();
+    currentBeachUnitIndex = (index + beachUnits.length) % beachUnits.length;
+    currentBeachUnit = beachUnits[currentBeachUnitIndex];
+
+    // Pick 5 words from the unit
+    beachWords = currentBeachUnit.words ? currentBeachUnit.words.slice(0, 5) : ["Mamá", "Papá", "Emma"];
+
+    // Initialize opened chests set for this unit if not exists
+    if (!openedChestsMap.has(currentBeachUnit.id)) {
+        openedChestsMap.set(currentBeachUnit.id, new Set());
+    }
+
+    // Preload audio for instantaneous zero latency playback
+    if (audioService && beachWords.length > 0) {
+        audioService.preloadWords(beachWords);
+    }
+
+    renderBeachChests();
+}
+
+/**
+ * Navigate to previous theme in the Beach
+ */
+function prevBeachTheme() {
+    if (audioService) audioService.playPop();
+    selectBeachUnit(currentBeachUnitIndex - 1);
+}
+
+/**
+ * Navigate to next theme in the Beach
+ */
+function nextBeachTheme() {
+    if (audioService) audioService.playPop();
+    selectBeachUnit(currentBeachUnitIndex + 1);
+}
+
+/**
+ * Render the 5 Chests on the beach sand
+ */
+function renderBeachChests() {
+    if (!currentBeachUnit || !beachChestsRow) return;
+
+    // Header updates
+    if (beachThemeIcon) beachThemeIcon.textContent = currentBeachUnit.icon || "🌟";
+    if (beachThemeName) beachThemeName.textContent = currentBeachUnit.name || "Aprender Palabras";
+
+    const openedSet = openedChestsMap.get(currentBeachUnit.id) || new Set();
+
+    if (beachOpenedCount) beachOpenedCount.textContent = openedSet.size;
+    if (beachTotalCount) beachTotalCount.textContent = beachWords.length;
+
+    // Render 5 Chests
+    beachChestsRow.innerHTML = '';
+
+    beachWords.forEach((word, idx) => {
+        const isOpen = openedSet.has(idx);
+        const chestItem = document.createElement('div');
+        chestItem.className = `beach-chest-item ${isOpen ? 'opened' : 'closed'}`;
+        chestItem.dataset.chestIndex = idx;
+
+        chestItem.innerHTML = `
+            <div class="chest-star-badge">⭐</div>
+            ${generateChestSvg(isOpen)}
+            <div class="chest-tag">
+                <span class="chest-num">${idx + 1}</span>
+                <span class="chest-word-peek">${isOpen ? word : '???'}</span>
+            </div>
+        `;
+
+        chestItem.addEventListener('click', () => {
+            onChestClicked(idx);
+        });
+
+        beachChestsRow.appendChild(chestItem);
+    });
+}
+
+/**
+ * Handle tap on a chest
+ * @param {number} index 
+ */
+function onChestClicked(index) {
+    const openedSet = openedChestsMap.get(currentBeachUnit.id) || new Set();
+    const wasClosed = !openedSet.has(index);
+
+    openedSet.add(index);
+    openedChestsMap.set(currentBeachUnit.id, openedSet);
+
+    if (audioService) {
+        audioService.playChestOpen();
+    }
+
+    // Refresh chests on beach so clicked chest displays as opened
+    renderBeachChests();
+
+    // Open floating 3D flashcard overlay
+    openCardOverlay(index);
+}
+
+/**
+ * Open the 3D card floating overlay for a word
+ * @param {number} index 
+ */
+function openCardOverlay(index) {
+    if (!beachWords || beachWords.length === 0) return;
+    currentCardIndex = Math.max(0, Math.min(beachWords.length - 1, index));
+    const currentWord = beachWords[currentCardIndex];
 
     // Reset card to front face
-    magicFlashcard.classList.remove('flipped');
-
-    // Unit theme badge
-    if (currentChestUnit) {
-        chestThemeIcon.textContent = currentChestUnit.icon || "🌟";
-        chestThemeName.textContent = currentChestUnit.name || "Aprende Palabras";
+    if (beachFlashcard) {
+        beachFlashcard.classList.remove('flipped');
     }
-
-    // Counter badge
-    chestCounter.textContent = `${currentChestIndex + 1} / ${chestWords.length}`;
 
     // Front: Word
-    chestWordFront.textContent = currentWord;
+    if (beachWordFront) beachWordFront.textContent = currentWord;
 
     // Back: Word + 3D Asset
-    chestWordBack.textContent = currentWord;
-    const assetUrl = (typeof AssetProvider !== 'undefined') 
-        ? AssetProvider.getAsset(currentWord) 
+    if (beachWordBack) beachWordBack.textContent = currentWord;
+    const assetUrl = (typeof AssetProvider !== 'undefined')
+        ? AssetProvider.getAsset(currentWord)
         : `images/elements/${currentWord.toLowerCase()}.png`;
-    chestImgBack.src = assetUrl;
+    if (beachImgBack) beachImgBack.src = assetUrl;
 
-    // Navigation button states
-    chestPrevBtn.style.opacity = currentChestIndex === 0 ? '0.35' : '1';
-    chestPrevBtn.style.pointerEvents = currentChestIndex === 0 ? 'none' : 'auto';
-
-    if (currentChestIndex === chestWords.length - 1) {
-        chestNextBtn.innerHTML = '<span>✨</span>';
-        chestNextBtn.title = '¡Terminaste todas las palabras!';
-    } else {
-        chestNextBtn.innerHTML = '<span>➡️</span>';
-        chestNextBtn.title = 'Siguiente palabra';
+    // Button states
+    if (beachCardPrev) {
+        beachCardPrev.style.opacity = currentCardIndex === 0 ? '0.35' : '1';
+        beachCardPrev.style.pointerEvents = currentCardIndex === 0 ? 'none' : 'auto';
+    }
+    if (beachCardNext) {
+        if (currentCardIndex === beachWords.length - 1) {
+            beachCardNext.innerHTML = '<span>✨</span>';
+            beachCardNext.title = '¡Descubriste todos los cofres!';
+        } else {
+            beachCardNext.innerHTML = '<span>➡️</span>';
+            beachCardNext.title = 'Siguiente cofre';
+        }
     }
 
-    // Pronounce the word in studio-quality neural voice
+    // Show overlay
+    if (beachCardOverlay) {
+        beachCardOverlay.classList.add('active');
+    }
+
+    // Auto-pronounce word with real studio voice
     setTimeout(() => {
-        if (audioService) {
-            audioService.speakWord(currentWord);
+        if (audioService && beachWords[currentCardIndex]) {
+            audioService.speakWord(beachWords[currentCardIndex]);
         }
-    }, 250);
+    }, 240);
 }
 
 /**
- * Flip card between word face and 3D illustration face
+ * Close the floating 3D card overlay
  */
-function flipChestCard() {
-    const isFlipped = magicFlashcard.classList.toggle('flipped');
-    const currentWord = chestWords[currentChestIndex];
+function closeCardOverlay() {
+    if (audioService) audioService.playPop();
+    if (beachCardOverlay) {
+        beachCardOverlay.classList.remove('active');
+    }
+    renderBeachChests();
+}
+
+/**
+ * Flip card between word face and 3D illustration
+ */
+function flipBeachCard() {
+    if (!beachFlashcard) return;
+    const isFlipped = beachFlashcard.classList.toggle('flipped');
+    const currentWord = beachWords[currentCardIndex];
 
     if (audioService) {
         if (isFlipped) {
             audioService.playSuccess();
             setTimeout(() => {
-                audioService.speakWord(currentWord);
+                if (currentWord) audioService.speakWord(currentWord);
             }, 300);
         } else {
             audioService.playPop();
@@ -935,34 +1204,34 @@ function flipChestCard() {
 }
 
 /**
- * Navigate to next flashcard
+ * Navigate to next chest from card overlay
  */
-function nextChestCard() {
-    if (currentChestIndex < chestWords.length - 1) {
-        currentChestIndex++;
-        renderChestCard();
+function nextBeachCard() {
+    if (currentCardIndex < beachWords.length - 1) {
+        onChestClicked(currentCardIndex + 1);
     } else {
-        // Last card: flip to reveal illustration or celebrate
-        flipChestCard();
+        flipBeachCard();
     }
 }
 
 /**
- * Navigate to previous flashcard
+ * Navigate to previous chest from card overlay
  */
-function prevChestCard() {
-    if (currentChestIndex > 0) {
-        currentChestIndex--;
-        renderChestCard();
+function prevBeachCard() {
+    if (currentCardIndex > 0) {
+        onChestClicked(currentCardIndex - 1);
     }
 }
 
 /**
- * Transition from discovery flashcards directly into the matching game
+ * Transition from the Beach directly into the matching game with these 5 words
  */
-async function playNowFromChest() {
+async function playFromBeach() {
     if (audioService) audioService.playFanfare();
-    closeMagicChest();
+
+    // Close beach views
+    if (beachCardOverlay) beachCardOverlay.classList.remove('active');
+    if (magicBeachStage) magicBeachStage.classList.remove('active');
 
     if (!gameEngine) {
         const curriculum = await loadCurriculum();
@@ -970,9 +1239,12 @@ async function playNowFromChest() {
         setupGameCallbacks();
     }
 
-    if (!gameEngine.sessionController || !gameEngine.sessionController.isActive) {
-        await gameEngine.startSession();
-    }
+    // Start matching game with these exact thematic words
+    await gameEngine.startWithWordSet(
+        beachWords,
+        currentBeachUnit ? currentBeachUnit.name : 'Mi Familia',
+        currentBeachUnit ? currentBeachUnit.themeClass : 'theme-family'
+    );
 }
 
 // 1-Click Forced Purge & Update in Parents Zone
@@ -1010,7 +1282,7 @@ if ('serviceWorker' in navigator) {
     });
 
     window.addEventListener('load', () => {
-        navigator.serviceWorker.register('sw.js?v=2.5').then((reg) => {
+        navigator.serviceWorker.register('sw.js?v=2.6').then((reg) => {
             reg.update();
             reg.addEventListener('updatefound', () => {
                 const newWorker = reg.installing;

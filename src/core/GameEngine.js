@@ -39,11 +39,16 @@ class GameEngine {
      * Start a new learning session
      */
     async startSession() {
-        console.log('🚀 Starting new session...');
+        console.log('🚀 Starting/resuming session...');
 
-        // Start session tracking
+        const wasActive = this.sessionController.sessionActive;
+
+        // Start session tracking (persists today's progress)
         this.sessionController.startSession();
-        this.learningManager.startSession();
+        if (!wasActive) {
+            this.learningManager.startSession();
+            this.levelsCompletedThisSession = 0;
+        }
 
         // Setup session callbacks
         this.sessionController.on('tick', (remaining) => {
@@ -56,11 +61,39 @@ class GameEngine {
             this.handleSessionEnd(summary);
         });
 
-        // Reset level counter
-        this.levelsCompletedThisSession = 0;
+        // Load level if none is active
+        if (!this.currentLevel) {
+            await this.loadNextLevel();
+        }
+    }
 
-        // Load first level
-        await this.loadNextLevel();
+    /**
+     * Start playing immediately with a specific thematic word set (e.g. from Beach Chests)
+     */
+    async startWithWordSet(words, themeName, themeClass = '') {
+        const wasActive = this.sessionController.sessionActive;
+        this.sessionController.startSession();
+        if (!wasActive) {
+            this.learningManager.startSession();
+            this.levelsCompletedThisSession = 0;
+        }
+
+        // Choose up to 4 words for a balanced 4-spot level
+        const selectedWords = (words && words.length > 0) ? words.slice(0, 4) : ["Mamá", "Papá", "Emma"];
+        const elements = selectedWords.map((word, idx) => ({
+            word: word,
+            gridIndex: idx,
+            image: (typeof AssetProvider !== 'undefined') ? AssetProvider.getAsset(word) : `images/elements/${word.toLowerCase()}.png`
+        }));
+
+        const levelData = {
+            elements: elements,
+            difficulty: elements.length,
+            theme: themeName ? `🌟 ${themeName}` : '🌟 ¡A descubrir palabras!',
+            themeClass: themeClass || 'theme-family'
+        };
+
+        this.renderLevel(levelData);
     }
 
     /**
