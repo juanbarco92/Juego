@@ -368,11 +368,13 @@ const AssetProvider = (function () {
 
     // Set of rich illustrated PNGs available in images/elements/
     const availablePngs = new Set([
-        'amigos', 'barrer', 'bebe', 'bote', 'brocoli', 'calabaza', 'cansado', 'caracol',
-        'cebolla', 'cepillar', 'comer', 'conejo', 'dormir', 'emma', 'empujar', 'escuela', 'flor',
-        'gallo', 'gato', 'guantes', 'huevo', 'jabon', 'jardin', 'jirafa', 'lampara', 'leche',
-        'libros', 'lobo', 'mama', 'manzana', 'medico', 'mesa', 'negro', 'orejas', 'pan', 'papa', 'pelota',
-        'perro', 'pollito', 'sofa', 'sol', 'televisor', 'tigre', 'vestir', 'yogur'
+        'amigos', 'avion', 'barco', 'barrer', 'bebe', 'bicicleta', 'bote', 'brocoli', 'calabaza',
+        'cansado', 'caracol', 'carro', 'cebolla', 'cepillar', 'comer', 'conejo', 'dormir', 'emma',
+        'empujar', 'escuela', 'flor', 'fresa', 'galleta', 'gallo', 'gato', 'globo', 'guantes',
+        'helado', 'huevo', 'jabon', 'jardin', 'jirafa', 'lampara', 'leche', 'libros', 'lobo',
+        'mama', 'manzana', 'medico', 'mesa', 'negro', 'orejas', 'oso', 'pan', 'papa', 'pelota',
+        'perro', 'platano', 'pollito', 'robot', 'sofa', 'sol', 'tambor', 'televisor', 'tigre',
+        'tren', 'uvas', 'vestir', 'yogur'
     ]);
 
     return {

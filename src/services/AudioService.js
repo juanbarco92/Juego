@@ -76,38 +76,87 @@ class AudioService {
     }
 
     /**
-     * Speak a word clearly and warmly
+     * Speak a word clearly and warmly using studio-quality MP3 audio with synthesis fallback
      * @param {string} word 
      */
     speakWord(word) {
-        if (!this.enabled || !('speechSynthesis' in window)) return;
+        if (!this.enabled || !word) return;
 
-        window.speechSynthesis.cancel(); // Stop previous voice
+        const normalized = word.toLowerCase().trim()
+            .normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, "_");
+
+        // Stop any currently playing audio
+        if (this.currentAudio) {
+            try {
+                this.currentAudio.pause();
+                this.currentAudio.currentTime = 0;
+            } catch (e) {}
+        }
+
+        // Try playing pre-rendered studio neural MP3
+        const audioPath = `audio/words/${normalized}.mp3`;
+        const audio = new Audio(audioPath);
+        this.currentAudio = audio;
+
+        const playPromise = audio.play();
+        if (playPromise !== undefined) {
+            playPromise.catch(() => {
+                // If MP3 file not found, fallback to Web Speech
+                this.speakWithSynthesis(word);
+            });
+        }
+    }
+
+    /**
+     * Fallback speech synthesis when MP3 is missing
+     */
+    speakWithSynthesis(word) {
+        if (!('speechSynthesis' in window)) return;
+        window.speechSynthesis.cancel();
         const utterance = new SpeechSynthesisUtterance(word.toLowerCase());
         if (this.voice) utterance.voice = this.voice;
-        utterance.lang = 'es-ES';
-        utterance.rate = 0.90;  // Ritmo pausado y claro para edad 3-4 años
-        utterance.pitch = 1.0;  // Tono 1.0 (humano y natural, sin distorsión metálica)
+        utterance.lang = 'es-CO';
+        utterance.rate = 0.90;
+        utterance.pitch = 1.0;
         window.speechSynthesis.speak(utterance);
     }
 
     /**
-     * Speak congratulatory praise
+     * Speak congratulatory praise using neural MP3
      * @param {string} word - The matched word
      */
     speakPraise(word) {
-        if (!this.enabled || !('speechSynthesis' in window)) return;
+        if (!this.enabled) return;
 
-        const randomPraise = this.praisePhrases[Math.floor(Math.random() * this.praisePhrases.length)];
-        const text = `${randomPraise} ${word}`;
+        // Stop previous audio
+        if (this.currentAudio) {
+            try {
+                this.currentAudio.pause();
+                this.currentAudio.currentTime = 0;
+            } catch (e) {}
+        }
 
-        window.speechSynthesis.cancel();
-        const utterance = new SpeechSynthesisUtterance(text);
-        if (this.voice) utterance.voice = this.voice;
-        utterance.lang = 'es-ES';
-        utterance.rate = 0.92;
-        utterance.pitch = 1.0;
-        window.speechSynthesis.speak(utterance);
+        // Random praise audio (praise_1 to praise_8)
+        const praiseNum = Math.floor(Math.random() * 8) + 1;
+        const praisePath = `audio/praise/praise_${praiseNum}.mp3`;
+        const audio = new Audio(praisePath);
+        this.currentAudio = audio;
+
+        audio.onended = () => {
+            if (word) {
+                setTimeout(() => {
+                    this.speakWord(word);
+                }, 200);
+            }
+        };
+
+        const playPromise = audio.play();
+        if (playPromise !== undefined) {
+            playPromise.catch(() => {
+                // Fallback to direct word pronunciation
+                this.speakWord(word);
+            });
+        }
     }
 
     /**

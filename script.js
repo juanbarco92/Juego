@@ -35,6 +35,31 @@ const sessionStatsSummary = document.getElementById('session-stats-summary');
 const parentModal = document.getElementById('parent-modal');
 const closeParentBtn = document.getElementById('close-parent-btn');
 
+// Magic Chest Elements
+const magicChestNavBtn = document.getElementById('magic-chest-nav-btn');
+const startChestBtn = document.getElementById('start-chest-btn');
+const magicChestModal = document.getElementById('magic-chest-modal');
+const closeChestBtn = document.getElementById('close-chest-btn');
+const chestThemeBadge = document.getElementById('chest-theme-badge');
+const chestThemeIcon = document.getElementById('chest-theme-icon');
+const chestThemeName = document.getElementById('chest-theme-name');
+const chestCounter = document.getElementById('chest-counter');
+const magicFlashcard = document.getElementById('magic-flashcard');
+const chestWordFront = document.getElementById('chest-word-front');
+const chestWordBack = document.getElementById('chest-word-back');
+const chestImgBack = document.getElementById('chest-img-back');
+const chestAudioFrontBtn = document.getElementById('chest-audio-front-btn');
+const chestAudioBackBtn = document.getElementById('chest-audio-back-btn');
+const chestPrevBtn = document.getElementById('chest-prev-btn');
+const chestFlipBtn = document.getElementById('chest-flip-btn');
+const chestNextBtn = document.getElementById('chest-next-btn');
+const chestPlayNowBtn = document.getElementById('chest-play-now-btn');
+const chestCardStage = document.getElementById('chest-card-stage');
+
+let chestWords = [];
+let currentChestIndex = 0;
+let currentChestUnit = null;
+
 // Parent Zone Elements
 const parentGateChallenge = document.getElementById('parent-gate-challenge');
 const mathProblem = document.getElementById('math-problem');
@@ -143,6 +168,72 @@ function setupUIEventListeners() {
             console.error('❌ Error al iniciar sesión:', err);
         }
     });
+
+    // Magic Chest Launchers & Controls
+    if (startChestBtn) {
+        startChestBtn.addEventListener('click', () => openMagicChest());
+    }
+    if (magicChestNavBtn) {
+        magicChestNavBtn.addEventListener('click', () => openMagicChest());
+    }
+    if (closeChestBtn) {
+        closeChestBtn.addEventListener('click', closeMagicChest);
+    }
+    if (chestFlipBtn) {
+        chestFlipBtn.addEventListener('click', flipChestCard);
+    }
+    if (magicFlashcard) {
+        magicFlashcard.addEventListener('click', (e) => {
+            if (e.target.closest('.card-audio-btn')) return;
+            flipChestCard();
+        });
+    }
+    if (chestPrevBtn) {
+        chestPrevBtn.addEventListener('click', prevChestCard);
+    }
+    if (chestNextBtn) {
+        chestNextBtn.addEventListener('click', nextChestCard);
+    }
+    if (chestPlayNowBtn) {
+        chestPlayNowBtn.addEventListener('click', playNowFromChest);
+    }
+    if (chestAudioFrontBtn) {
+        chestAudioFrontBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (chestWords[currentChestIndex] && audioService) {
+                audioService.speakWord(chestWords[currentChestIndex]);
+            }
+        });
+    }
+    if (chestAudioBackBtn) {
+        chestAudioBackBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (chestWords[currentChestIndex] && audioService) {
+                audioService.speakWord(chestWords[currentChestIndex]);
+            }
+        });
+    }
+
+    // iPad touch swipe support for flashcards
+    if (chestCardStage) {
+        let touchStartX = 0;
+        let touchEndX = 0;
+        chestCardStage.addEventListener('touchstart', (e) => {
+            if (e.changedTouches && e.changedTouches[0]) {
+                touchStartX = e.changedTouches[0].screenX;
+            }
+        }, { passive: true });
+        chestCardStage.addEventListener('touchend', (e) => {
+            if (e.changedTouches && e.changedTouches[0]) {
+                touchEndX = e.changedTouches[0].screenX;
+                if (touchStartX - touchEndX > 50) {
+                    nextChestCard();
+                } else if (touchEndX - touchStartX > 50) {
+                    prevChestCard();
+                }
+            }
+        }, { passive: true });
+    }
 
     // Audio Toggle
     audioToggleBtn.addEventListener('click', () => {
@@ -687,4 +778,166 @@ function renderWordStatsDashboard(filter = 'all') {
 
         wordStatsList.appendChild(row);
     });
+}
+
+/**
+ * ==========================================================================
+ * Cofre Mágico (Flashcards 3D de Descubrimiento y Aprendizaje - Glenn Doman)
+ * ==========================================================================
+ */
+
+/**
+ * Open Magic Chest presentation mode
+ * @param {Object|null} targetUnit - Specific unit to present, or current/first unit
+ */
+function openMagicChest(targetUnit = null) {
+    if (audioService) audioService.playPop();
+
+    // Close welcome modal if open
+    if (welcomeModal) {
+        welcomeModal.classList.remove('active');
+        welcomeModal.style.display = 'none';
+    }
+
+    // Get units from curriculum
+    let units = (window.ACTIVE_CURRICULUM && window.ACTIVE_CURRICULUM.units) ? window.ACTIVE_CURRICULUM.units : [];
+    if (units.length === 0 && gameEngine && gameEngine.curriculum && gameEngine.curriculum.units) {
+        units = gameEngine.curriculum.units;
+    }
+
+    if (targetUnit) {
+        currentChestUnit = targetUnit;
+    } else if (gameEngine && gameEngine.currentLevel && gameEngine.currentLevel.data) {
+        const currentUnitId = gameEngine.currentLevel.data.unitId;
+        currentChestUnit = units.find(u => u.id === currentUnitId) || units[0];
+    } else {
+        currentChestUnit = units[0] || {
+            name: "Mi Familia",
+            icon: "👨‍👩‍👧",
+            words: ["Mamá", "Papá", "Emma"]
+        };
+    }
+
+    chestWords = currentChestUnit.words ? [...currentChestUnit.words] : ["Mamá", "Papá", "Emma"];
+    currentChestIndex = 0;
+
+    magicChestModal.classList.add('active');
+    renderChestCard();
+}
+
+/**
+ * Close Magic Chest
+ */
+function closeMagicChest() {
+    if (audioService) audioService.playPop();
+    magicChestModal.classList.remove('active');
+}
+
+/**
+ * Render the current flashcard in the Magic Chest
+ */
+function renderChestCard() {
+    if (!chestWords || chestWords.length === 0) return;
+    const currentWord = chestWords[currentChestIndex];
+
+    // Reset card to front face
+    magicFlashcard.classList.remove('flipped');
+
+    // Unit theme badge
+    if (currentChestUnit) {
+        chestThemeIcon.textContent = currentChestUnit.icon || "🌟";
+        chestThemeName.textContent = currentChestUnit.name || "Aprende Palabras";
+    }
+
+    // Counter badge
+    chestCounter.textContent = `${currentChestIndex + 1} / ${chestWords.length}`;
+
+    // Front: Word
+    chestWordFront.textContent = currentWord;
+
+    // Back: Word + 3D Asset
+    chestWordBack.textContent = currentWord;
+    const assetUrl = (typeof AssetProvider !== 'undefined') 
+        ? AssetProvider.getAsset(currentWord) 
+        : `images/elements/${currentWord.toLowerCase()}.png`;
+    chestImgBack.src = assetUrl;
+
+    // Navigation button states
+    chestPrevBtn.style.opacity = currentChestIndex === 0 ? '0.35' : '1';
+    chestPrevBtn.style.pointerEvents = currentChestIndex === 0 ? 'none' : 'auto';
+
+    if (currentChestIndex === chestWords.length - 1) {
+        chestNextBtn.innerHTML = '<span>✨</span>';
+        chestNextBtn.title = '¡Terminaste todas las palabras!';
+    } else {
+        chestNextBtn.innerHTML = '<span>➡️</span>';
+        chestNextBtn.title = 'Siguiente palabra';
+    }
+
+    // Pronounce the word in studio-quality neural voice
+    setTimeout(() => {
+        if (audioService) {
+            audioService.speakWord(currentWord);
+        }
+    }, 250);
+}
+
+/**
+ * Flip card between word face and 3D illustration face
+ */
+function flipChestCard() {
+    const isFlipped = magicFlashcard.classList.toggle('flipped');
+    const currentWord = chestWords[currentChestIndex];
+
+    if (audioService) {
+        if (isFlipped) {
+            audioService.playSuccess();
+            setTimeout(() => {
+                audioService.speakWord(currentWord);
+            }, 300);
+        } else {
+            audioService.playPop();
+        }
+    }
+}
+
+/**
+ * Navigate to next flashcard
+ */
+function nextChestCard() {
+    if (currentChestIndex < chestWords.length - 1) {
+        currentChestIndex++;
+        renderChestCard();
+    } else {
+        // Last card: flip to reveal illustration or celebrate
+        flipChestCard();
+    }
+}
+
+/**
+ * Navigate to previous flashcard
+ */
+function prevChestCard() {
+    if (currentChestIndex > 0) {
+        currentChestIndex--;
+        renderChestCard();
+    }
+}
+
+/**
+ * Transition from discovery flashcards directly into the matching game
+ */
+async function playNowFromChest() {
+    if (audioService) audioService.playFanfare();
+    closeMagicChest();
+
+    if (!gameEngine) {
+        const curriculum = await loadCurriculum();
+        gameEngine = new GameEngine(curriculum);
+        setupGameCallbacks();
+    }
+
+    if (!gameEngine.sessionController || !gameEngine.sessionController.isActive) {
+        await gameEngine.startSession();
+    }
 }

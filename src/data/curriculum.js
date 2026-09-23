@@ -11,49 +11,70 @@ const ACTIVE_CURRICULUM = {
             name: "Mi Familia",
             icon: "👨‍👩‍👧",
             themeClass: "theme-family",
-            words: ["Mamá", "Papá", "Emma"]
+            words: ["Mamá", "Papá", "Emma", "bebé", "amigos"]
         },
         {
             id: "mascotas",
             name: "Mis Mascotas",
             icon: "🐾",
             themeClass: "theme-pets",
-            words: ["perro", "gato", "conejo", "pollito"]
+            words: ["perro", "gato", "conejo", "pollito", "gallo"]
         },
         {
-            id: "comida",
-            name: "Comida Rica",
-            icon: "🍎",
+            id: "frutas",
+            name: "Frutas y Meriendas",
+            icon: "🍓",
             themeClass: "theme-food",
-            words: ["manzana", "leche", "pan", "huevo"]
+            words: ["manzana", "fresa", "plátano", "uvas", "galleta", "helado"]
+        },
+        {
+            id: "comida_mesa",
+            name: "Rico en la Mesa",
+            icon: "🥛",
+            themeClass: "theme-food",
+            words: ["pan", "leche", "huevo", "yogur", "brócoli"]
+        },
+        {
+            id: "vehiculos",
+            name: "¡A Viajar! Vehículos",
+            icon: "🚗",
+            themeClass: "theme-nature",
+            words: ["carro", "avión", "tren", "barco", "bicicleta"]
+        },
+        {
+            id: "juguetes",
+            name: "Mis Juguetes",
+            icon: "🧸",
+            themeClass: "theme-pets",
+            words: ["pelota", "oso", "robot", "tambor", "globo"]
         },
         {
             id: "naturaleza",
-            name: "El Sol y la Naturaleza",
+            name: "El Sol y el Parque",
             icon: "🌸",
             themeClass: "theme-nature",
-            words: ["sol", "flor", "pelota", "bote"]
+            words: ["sol", "flor", "bote", "jardín"]
         },
         {
             id: "animales",
-            name: "Animales Curiosos",
+            name: "Animales Asombrosos",
             icon: "🦁",
             themeClass: "theme-animals",
-            words: ["jirafa", "tigre", "caracol", "gallo"]
+            words: ["jirafa", "tigre", "caracol", "lobo"]
         },
         {
             id: "casa",
-            name: "En Casa",
+            name: "En Mi Casita",
             icon: "🏠",
             themeClass: "theme-home",
-            words: ["mesa", "sofá", "lámpara", "jabón"]
+            words: ["mesa", "sofá", "lámpara", "jabón", "televisor"]
         },
         {
-            id: "cuerpo_ropa",
-            name: "Mi Carita y Ropa",
-            icon: "🧤",
+            id: "rutinas",
+            name: "Mis Rutinas Diarias",
+            icon: "⭐",
             themeClass: "theme-body",
-            words: ["orejas", "guantes", "pelota"]
+            words: ["comer", "dormir", "cepillar", "vestir", "barrer"]
         }
     ],
     // Backwards compatibility dictionary

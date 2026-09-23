@@ -44,14 +44,20 @@ class LearningManager {
      */
     selectNextWordSet(sessionProgress = 0, levelsCompleted = 0) {
         // 1. Get available units
-        const units = this.curriculum.units || [
-            { id: "familia", name: "Mi Familia", icon: "👨‍👩‍👧", themeClass: "theme-family", words: ["Mamá", "Papá", "Emma"] },
-            { id: "mascotas", name: "Mis Mascotas", icon: "🐾", themeClass: "theme-pets", words: ["perro", "gato", "conejo", "pollito"] },
-            { id: "comida", name: "Comida Rica", icon: "🍎", themeClass: "theme-food", words: ["manzana", "leche", "pan", "huevo"] },
-            { id: "naturaleza", name: "El Sol y la Naturaleza", icon: "🌸", themeClass: "theme-nature", words: ["sol", "flor", "pelota", "bote"] },
-            { id: "animales", name: "Animales Curiosos", icon: "🦁", themeClass: "theme-animals", words: ["jirafa", "tigre", "caracol", "gallo"] },
-            { id: "casa", name: "En Casa", icon: "🏠", themeClass: "theme-home", words: ["mesa", "sofá", "lámpara", "jabón"] }
-        ];
+        const units = (this.curriculum && this.curriculum.units && this.curriculum.units.length > 0) 
+            ? this.curriculum.units 
+            : [
+                { id: "familia", name: "Mi Familia", icon: "👨‍👩‍👧", themeClass: "theme-family", words: ["Mamá", "Papá", "Emma", "bebé", "amigos"] },
+                { id: "mascotas", name: "Mis Mascotas", icon: "🐾", themeClass: "theme-pets", words: ["perro", "gato", "conejo", "pollito", "gallo"] },
+                { id: "frutas", name: "Frutas y Meriendas", icon: "🍓", themeClass: "theme-food", words: ["manzana", "fresa", "plátano", "uvas", "galleta", "helado"] },
+                { id: "comida_mesa", name: "Rico en la Mesa", icon: "🥛", themeClass: "theme-food", words: ["pan", "leche", "huevo", "yogur", "brócoli"] },
+                { id: "vehiculos", name: "¡A Viajar! Vehículos", icon: "🚗", themeClass: "theme-nature", words: ["carro", "avión", "tren", "barco", "bicicleta"] },
+                { id: "juguetes", name: "Mis Juguetes", icon: "🧸", themeClass: "theme-pets", words: ["pelota", "oso", "robot", "tambor", "globo"] },
+                { id: "naturaleza", name: "El Sol y el Parque", icon: "🌸", themeClass: "theme-nature", words: ["sol", "flor", "bote", "jardín"] },
+                { id: "animales", name: "Animales Asombrosos", icon: "🦁", themeClass: "theme-animals", words: ["jirafa", "tigre", "caracol", "lobo"] },
+                { id: "casa", name: "En Mi Casita", icon: "🏠", themeClass: "theme-home", words: ["mesa", "sofá", "lámpara", "jabón", "televisor"] },
+                { id: "rutinas", name: "Mis Rutinas Diarias", icon: "⭐", themeClass: "theme-body", words: ["comer", "dormir", "cepillar", "vestir", "barrer"] }
+            ];
 
         // 2. Select unit in rotation based on levelsCompleted
         const activeUnit = units[levelsCompleted % units.length];

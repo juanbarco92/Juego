@@ -87,6 +87,7 @@
 
             <!-- Quick Controls -->
             <div class="quick-controls">
+                <button id="magic-chest-nav-btn" class="icon-btn magic-btn" title="Cofre Mágico - Aprender Palabras" aria-label="Aprender">📖</button>
                 <button id="audio-toggle-btn" class="icon-btn" title="Activar/Silenciar sonido" aria-label="Sonido">🔊</button>
                 <button id="parent-gate-btn" class="icon-btn" title="Zona de papás" aria-label="Zona de papás">⚙️</button>
             </div>
@@ -121,11 +122,77 @@
         <div class="modal-card welcome-card">
             <div class="welcome-avatar">👧✨</div>
             <h2>¡Hola, Emma!</h2>
-            <p>¿Lista para jugar y aprender palabras mágicas?</p>
-            <button id="start-game-btn" class="btn-play">
-                <span>¡JUGAR!</span>
-                <span class="btn-icon">🚀</span>
-            </button>
+            <p>¿Qué te gustaría hacer hoy?</p>
+            <div class="welcome-actions">
+                <button id="start-chest-btn" class="btn-discovery">
+                    <span class="btn-main-text">📖 El Cofre Mágico</span>
+                    <span class="btn-subtext">Aprender palabras nuevas</span>
+                </button>
+                <button id="start-game-btn" class="btn-play">
+                    <span class="btn-main-text">🎮 ¡A Jugar!</span>
+                    <span class="btn-subtext">Emparejar palabras</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Magic Chest Modal (Tarjetas 3D de Aprendizaje / Flashcards Doman) -->
+    <div class="modal-backdrop" id="magic-chest-modal">
+        <div class="modal-card chest-card">
+            <div class="chest-header">
+                <div class="chest-theme-badge" id="chest-theme-badge">
+                    <span id="chest-theme-icon">🍓</span>
+                    <span id="chest-theme-name">Frutas y Meriendas</span>
+                </div>
+                <div class="chest-counter" id="chest-counter">1 / 4</div>
+                <button id="close-chest-btn" class="btn-close" aria-label="Cerrar">&times;</button>
+            </div>
+
+            <!-- Interactive 3D Flip Card Stage -->
+            <div class="chest-card-stage" id="chest-card-stage">
+                <div class="flashcard-3d" id="magic-flashcard">
+                    <!-- Front Side: Word & Pronunciation -->
+                    <div class="card-face card-front">
+                        <span class="card-hint">✨ Toca para descubrir ✨</span>
+                        <h2 class="card-word" id="chest-word-front">manzana</h2>
+                        <button class="card-audio-btn" id="chest-audio-front-btn" title="Escuchar">
+                            <span class="speaker-icon">🔊</span>
+                        </button>
+                        <span class="tap-invite">👆 Toca para girar</span>
+                    </div>
+
+                    <!-- Back Side: 3D Illustration & Word -->
+                    <div class="card-face card-back">
+                        <div class="card-image-box">
+                            <img id="chest-img-back" src="" alt="Ilustración">
+                        </div>
+                        <h3 class="card-word-back" id="chest-word-back">manzana</h3>
+                        <button class="card-audio-btn small" id="chest-audio-back-btn" title="Escuchar de nuevo">
+                            <span>🔊</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Navigation Controls -->
+            <div class="chest-controls">
+                <button id="chest-prev-btn" class="chest-nav-btn" aria-label="Anterior">
+                    <span>⬅️</span>
+                </button>
+                <button id="chest-flip-btn" class="chest-action-btn">
+                    <span>Girar 🔄</span>
+                </button>
+                <button id="chest-next-btn" class="chest-nav-btn" aria-label="Siguiente">
+                    <span>➡️</span>
+                </button>
+            </div>
+
+            <!-- Play with these words action -->
+            <div class="chest-footer-action">
+                <button id="chest-play-now-btn" class="btn-chest-play">
+                    <span>¡A jugar con estas palabras! 🚀</span>
+                </button>
+            </div>
         </div>
     </div>
 
