@@ -2039,6 +2039,498 @@ html, body {
 }
 
 /* ==========================================================================
+   Modo Recreo: Mini-Juegos de Descanso Pedagógico
+   ========================================================================== */
+
+/* Barra de navegación común para los mini-juegos */
+.substage-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    padding: 10px 20px;
+    background: rgba(255, 255, 255, 0.94);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-bottom: 3px solid #FFF;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.06);
+    z-index: 10;
+}
+
+.substage-back-btn {
+    background: #FFFFFF;
+    border: 2px solid #CBD5E1;
+    border-radius: var(--radius-pill);
+    padding: 8px 18px;
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #475569;
+    cursor: pointer;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+    transition: all 0.2s ease;
+}
+
+.substage-back-btn:hover {
+    background: #F1F5F9;
+    color: #0F172A;
+    transform: scale(1.04);
+}
+
+.substage-word-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    background: #FFFFFF;
+    border: 3px solid #FEF08A;
+    border-radius: var(--radius-pill);
+    padding: 6px 22px;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.05);
+}
+
+.substage-badge-label {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #64748B;
+}
+
+.substage-badge-word {
+    font-size: 1.9rem;
+    font-weight: 800;
+    color: #1E293B;
+    letter-spacing: 0.6px;
+}
+
+.substage-audio-btn {
+    background: #EFF6FF;
+    border: 2px solid #BFDBFE;
+    border-radius: 50%;
+    width: 38px;
+    height: 38px;
+    font-size: 1.15rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.2s;
+}
+
+.substage-audio-btn:hover {
+    transform: scale(1.15);
+    background: #DBEAFE;
+}
+
+.substage-done-btn {
+    background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+    color: #FFFFFF;
+    font-weight: 800;
+    font-size: 1.1rem;
+    padding: 9px 24px;
+    border-radius: var(--radius-pill);
+    border: 3px solid #FFFFFF;
+    box-shadow: 0 6px 18px rgba(16, 185, 129, 0.35);
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.substage-done-btn:hover {
+    transform: translateY(-2px) scale(1.04);
+    box-shadow: 0 10px 24px rgba(16, 185, 129, 0.45);
+}
+
+/* ==========================================================================
+   Mini-Juego 1: Pinta la Palabra Mágica
+   ========================================================================== */
+
+.paint-stage {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: linear-gradient(135deg, #FFFBEB 0%, #FEF3C7 50%, #FDE68A 100%);
+    z-index: 500;
+    display: none;
+    flex-direction: column;
+}
+
+.paint-stage.active {
+    display: flex;
+}
+
+.paint-workspace {
+    flex: 1;
+    display: flex;
+    padding: 14px 20px 24px;
+    gap: 18px;
+    align-items: stretch;
+    min-height: 0;
+}
+
+.paint-canvas-container {
+    flex: 1;
+    background: #FFFFFF;
+    border-radius: 36px;
+    border: 4px solid #FFFFFF;
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.08);
+    position: relative;
+    overflow: hidden;
+    touch-action: none;
+}
+
+canvas#paint-canvas {
+    width: 100%;
+    height: 100%;
+    display: block;
+    touch-action: none;
+    cursor: crosshair;
+}
+
+.paint-words-selector {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.paint-word-pill {
+    background: #F1F5F9;
+    border: 2px solid #CBD5E1;
+    border-radius: var(--radius-pill);
+    padding: 5px 14px;
+    font-size: 1rem;
+    font-weight: 700;
+    color: #475569;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.paint-word-pill.active {
+    background: #FEF08A;
+    border-color: #F59E0B;
+    color: #92400E;
+    transform: scale(1.06);
+    box-shadow: 0 4px 10px rgba(245, 158, 11, 0.25);
+}
+
+.paint-toolbar {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 12px;
+    background: rgba(255, 255, 255, 0.94);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border-radius: 32px;
+    padding: 16px 14px;
+    border: 3.5px solid #FFFFFF;
+    box-shadow: 0 14px 32px rgba(0, 0, 0, 0.08);
+    width: 136px;
+}
+
+.paint-colors-palette {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    justify-items: center;
+}
+
+.paint-color-btn {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    border: 3.5px solid #FFFFFF;
+    cursor: pointer;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+    transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s;
+}
+
+.paint-color-btn:hover {
+    transform: scale(1.12);
+}
+
+.paint-color-btn.active {
+    transform: scale(1.22);
+    box-shadow: 0 0 0 3px #1E293B, 0 6px 14px rgba(0, 0, 0, 0.3);
+}
+
+.rainbow-crayon-btn {
+    background: linear-gradient(135deg, #FF6B6B 0%, #4ECDC4 35%, #FFE66D 70%, #A78BFA 100%) !important;
+    font-size: 1.35rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.paint-tools-palette {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: 100%;
+}
+
+.paint-tool-btn {
+    border-radius: var(--radius-pill);
+    border: 2px solid #E2E8F0;
+    background: #F8FAFC;
+    color: #334155;
+    font-weight: 700;
+    font-size: 0.92rem;
+    padding: 7px 10px;
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.2s;
+}
+
+.paint-tool-btn.active {
+    background: #E0F2FE;
+    border-color: #0284C7;
+    color: #0369A1;
+    box-shadow: 0 4px 10px rgba(2, 132, 199, 0.2);
+}
+
+.paint-tool-btn.danger {
+    color: #EF4444;
+    border-color: #FECACA;
+    background: #FEF2F2;
+}
+
+/* ==========================================================================
+   Mini-Juego 2: Atrapa las Burbujas de Lectura
+   ========================================================================== */
+
+.bubbles-stage {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: linear-gradient(180deg, #BAE6FD 0%, #E0F2FE 40%, #FEF9C3 85%, #FEF08A 100%);
+    z-index: 500;
+    display: none;
+    flex-direction: column;
+}
+
+.bubbles-stage.active {
+    display: flex;
+}
+
+.bubbles-bar {
+    background: rgba(255, 255, 255, 0.92);
+}
+
+.bubbles-mission-badge {
+    border-color: #38BDF8;
+}
+
+.bubbles-score-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: linear-gradient(135deg, #FEF08A, #FDE047);
+    border: 2px solid #FFFFFF;
+    border-radius: var(--radius-pill);
+    padding: 6px 18px;
+    font-size: 1.25rem;
+    font-weight: 800;
+    color: #92400E;
+    box-shadow: 0 4px 12px rgba(234, 179, 8, 0.3);
+}
+
+.bubbles-arena {
+    flex: 1;
+    position: relative;
+    overflow: hidden;
+    touch-action: none;
+    width: 100%;
+}
+
+/* Burbujas de Jabón Tridimensionales */
+.floating-bubble {
+    position: absolute;
+    width: 130px;
+    height: 130px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: none;
+    background: radial-gradient(circle at 35% 30%, rgba(255, 255, 255, 0.92) 0%, rgba(255, 255, 255, 0.45) 25%, rgba(186, 230, 253, 0.55) 60%, rgba(125, 211, 252, 0.85) 100%);
+    box-shadow: inset 0 0 24px rgba(255, 255, 255, 0.85), inset 0 -8px 16px rgba(14, 165, 233, 0.4), 0 12px 28px rgba(14, 165, 233, 0.28);
+    border: 2px solid rgba(255, 255, 255, 0.9);
+    transition: transform 0.15s ease;
+    animation: bubbleSway 3s ease-in-out infinite alternate;
+}
+
+.floating-bubble::after {
+    content: '';
+    position: absolute;
+    top: 14%;
+    left: 20%;
+    width: 28%;
+    height: 20%;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.9);
+    transform: rotate(-35deg);
+    filter: blur(1px);
+}
+
+@keyframes bubbleSway {
+    0% { transform: translateX(-14px); }
+    100% { transform: translateX(14px); }
+}
+
+.bubble-word-text {
+    font-family: 'Fredoka', cursive, sans-serif;
+    font-size: 1.85rem;
+    font-weight: 800;
+    color: #0369A1;
+    text-shadow: 0 1px 3px rgba(255, 255, 255, 0.95);
+    pointer-events: none;
+    letter-spacing: 0.5px;
+}
+
+/* Efecto de explosión de burbuja */
+.floating-bubble.popping {
+    animation: bubbleBurst 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards !important;
+    pointer-events: none;
+}
+
+@keyframes bubbleBurst {
+    0% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.4); opacity: 0.8; filter: brightness(1.5); }
+    100% { transform: scale(1.9); opacity: 0; }
+}
+
+/* Rebote suave si toca burbuja equivocada */
+.floating-bubble.wrong-bubble {
+    animation: bubbleGentleWobble 0.5s ease-in-out;
+}
+
+@keyframes bubbleGentleWobble {
+    0%, 100% { transform: scale(1); }
+    30% { transform: scale(1.15) rotate(6deg); }
+    60% { transform: scale(0.9) rotate(-6deg); }
+}
+
+/* Cartel de Victoria de Burbujas */
+.bubbles-win-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(15, 23, 42, 0.65);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+}
+
+.bubbles-win-overlay.active {
+    display: flex;
+}
+
+.bubbles-win-card {
+    background: #FFFFFF;
+    border-radius: 40px;
+    border: 5px solid #FDE047;
+    padding: 34px 38px;
+    text-align: center;
+    max-width: 480px;
+    width: 90%;
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.25);
+    animation: gentleWobble 0.7s ease;
+}
+
+.win-stars-burst {
+    font-size: 3.8rem;
+    margin-bottom: 10px;
+}
+
+.bubbles-win-card h2 {
+    font-size: 2rem;
+    font-weight: 800;
+    color: #1E293B;
+    margin-bottom: 8px;
+}
+
+.bubbles-win-card p {
+    font-size: 1.15rem;
+    color: #64748B;
+    margin-bottom: 22px;
+}
+
+.bubbles-win-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+/* ==========================================================================
+   Modal de Recreo / Nivel Superado
+   ========================================================================== */
+
+.recess-card {
+    border: 5px solid #FDE047;
+}
+
+.recess-avatar {
+    font-size: 3.5rem;
+    margin-bottom: 6px;
+    animation: cuteBounce 2.5s infinite;
+}
+
+.recess-words-preview {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin: 12px 0 20px;
+}
+
+.recess-word-tag {
+    background: linear-gradient(135deg, #EEF2FF 0%, #E0E7FF 100%);
+    border: 2px solid #C7D2FE;
+    color: #4338CA;
+    border-radius: var(--radius-pill);
+    padding: 5px 16px;
+    font-weight: 800;
+    font-size: 1.15rem;
+}
+
+.welcome-choice-btn.paint-btn {
+    border-color: #F472B6;
+    background: linear-gradient(135deg, #FFF1F2 0%, #FDF2F8 100%);
+}
+
+.welcome-choice-btn.paint-btn:hover {
+    border-color: #EC4899;
+    box-shadow: 0 12px 28px rgba(236, 72, 153, 0.22);
+}
+
+.welcome-choice-btn.bubbles-btn {
+    border-color: #38BDF8;
+    background: linear-gradient(135deg, #F0F9FF 0%, #E0F2FE 100%);
+}
+
+.welcome-choice-btn.bubbles-btn:hover {
+    border-color: #0284C7;
+    box-shadow: 0 12px 28px rgba(2, 132, 199, 0.22);
+}
+
+.icon-btn.recess-btn {
+    background: #FEF08A;
+    border-color: #F59E0B;
+    animation: gentlePulse 2.8s ease-in-out infinite;
+}
+
+/* ==========================================================================
    Diseño Adaptativo (iPad Portrait & Tablets)
    ========================================================================== */
 
@@ -2210,5 +2702,48 @@ html, body {
 
     .beach-card-wrapper .flashcard-3d {
         height: 240px;
+    }
+
+    .paint-workspace {
+        flex-direction: column;
+        padding: 8px 10px 14px;
+        gap: 10px;
+    }
+
+    .paint-toolbar {
+        width: 100%;
+        flex-direction: row;
+        padding: 8px 12px;
+        gap: 8px;
+    }
+
+    .paint-colors-palette {
+        grid-template-columns: repeat(4, 1fr);
+        gap: 6px;
+    }
+
+    .paint-color-btn {
+        width: 36px;
+        height: 36px;
+    }
+
+    .paint-tools-palette {
+        flex-direction: row;
+        gap: 6px;
+        flex-wrap: wrap;
+    }
+
+    .paint-tool-btn {
+        padding: 4px 8px;
+        font-size: 0.8rem;
+    }
+
+    .floating-bubble {
+        width: 100px;
+        height: 100px;
+    }
+
+    .bubble-word-text {
+        font-size: 1.45rem;
     }
 }

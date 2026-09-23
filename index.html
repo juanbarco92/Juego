@@ -18,16 +18,16 @@
     <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Quicksand:wght@600;700&display=swap" rel="stylesheet">
 
     <!-- Styles -->
-    <link rel="stylesheet" href="styles.css?v=2.7">
+    <link rel="stylesheet" href="styles.css?v=2.8">
 
     <!-- Core Dependencies -->
-    <script src="src/data/curriculum.js?v=2.7"></script>
-    <script src="src/data/assets.js?v=2.7"></script>
-    <script src="src/services/AudioService.js?v=2.7"></script>
-    <script src="src/utils/StorageManager.js?v=2.7"></script>
-    <script src="src/managers/LearningManager.js?v=2.7"></script>
-    <script src="src/managers/SessionController.js?v=2.7"></script>
-    <script src="src/core/GameEngine.js?v=2.7"></script>
+    <script src="src/data/curriculum.js?v=2.8"></script>
+    <script src="src/data/assets.js?v=2.8"></script>
+    <script src="src/services/AudioService.js?v=2.8"></script>
+    <script src="src/utils/StorageManager.js?v=2.8"></script>
+    <script src="src/managers/LearningManager.js?v=2.8"></script>
+    <script src="src/managers/SessionController.js?v=2.8"></script>
+    <script src="src/core/GameEngine.js?v=2.8"></script>
 </head>
 
 <body>
@@ -53,7 +53,7 @@
             <div class="brand">
                 <span class="brand-avatar">👧</span>
                 <span class="brand-name">Emma Aprende</span>
-                <span class="build-badge">v2.7</span>
+                <span class="build-badge">v2.8</span>
             </div>
 
             <!-- The Sky Progress Metaphor (El Cielo de Emma) -->
@@ -90,6 +90,7 @@
             <div class="quick-controls">
                 <button id="home-menu-btn" class="icon-btn home-btn" title="Menú Principal" aria-label="Menú Principal">🏠</button>
                 <button id="magic-chest-nav-btn" class="icon-btn magic-btn" title="Cofre Mágico - Aprender Palabras" aria-label="Aprender">📖</button>
+                <button id="recess-nav-btn" class="icon-btn recess-btn" title="Modo Recreo (Pintar y Burbujas)" aria-label="Recreo">🎈</button>
                 <button id="audio-toggle-btn" class="icon-btn" title="Activar/Silenciar sonido" aria-label="Sonido">🔊</button>
                 <button id="parent-gate-btn" class="icon-btn" title="Zona de papás" aria-label="Zona de papás">⚙️</button>
             </div>
@@ -157,6 +158,14 @@
                         <span class="choice-desc">Emparejar palabras</span>
                     </div>
                     <span class="choice-badge">🚀</span>
+                </button>
+                <button id="welcome-recess-btn" class="welcome-choice-btn recess-btn">
+                    <span class="choice-icon">🎨</span>
+                    <div class="choice-text">
+                        <span class="choice-title">Modo Recreo</span>
+                        <span class="choice-desc">Pintar y burbujas divertidas</span>
+                    </div>
+                    <span class="choice-badge">🎈</span>
                 </button>
                 <button id="welcome-parents-btn" class="btn-parents-link">⚙️ Zona de Papás</button>
             </div>
@@ -299,6 +308,138 @@
         </div>
     </div>
 
+    <!-- ==========================================================================
+         Mini-Juego 1: Pinta la Palabra Mágica (Colorear con Dedos en iPad)
+         ========================================================================== -->
+    <div id="paint-stage" class="beach-stage paint-stage">
+        <header class="substage-bar">
+            <button id="paint-back-btn" class="substage-back-btn" title="Volver al juego">⬅️ Volver</button>
+            <div class="substage-word-badge">
+                <span class="substage-badge-label">🎨 Pintando:</span>
+                <span class="substage-badge-word" id="paint-word-display">MAMÁ</span>
+                <button id="paint-audio-btn" class="substage-audio-btn" title="Escuchar">🔊</button>
+            </div>
+            <div class="paint-words-selector" id="paint-words-selector">
+                <!-- Word pills -->
+            </div>
+            <button id="paint-done-btn" class="substage-done-btn">🌟 ¡Terminé mi dibujo!</button>
+        </header>
+
+        <div class="paint-workspace">
+            <div class="paint-canvas-container" id="paint-canvas-container">
+                <canvas id="paint-canvas"></canvas>
+            </div>
+
+            <div class="paint-toolbar">
+                <div class="paint-colors-palette" id="paint-colors-palette">
+                    <button class="paint-color-btn active" data-color="#EF4444" style="background:#EF4444;" title="Rojo"></button>
+                    <button class="paint-color-btn" data-color="#F97316" style="background:#F97316;" title="Naranja"></button>
+                    <button class="paint-color-btn" data-color="#FACC15" style="background:#FACC15;" title="Amarillo"></button>
+                    <button class="paint-color-btn" data-color="#10B981" style="background:#10B981;" title="Verde"></button>
+                    <button class="paint-color-btn" data-color="#06B6D4" style="background:#06B6D4;" title="Celeste"></button>
+                    <button class="paint-color-btn" data-color="#8B5CF6" style="background:#8B5CF6;" title="Morado"></button>
+                    <button class="paint-color-btn" data-color="#EC4899" style="background:#EC4899;" title="Rosado"></button>
+                    <button class="paint-color-btn rainbow-crayon-btn" data-color="rainbow" title="Pincel Arcoíris">🌈</button>
+                </div>
+                <div class="paint-tools-palette">
+                    <button id="paint-size-sm" class="paint-tool-btn" data-size="12">✏️ Fino</button>
+                    <button id="paint-size-md" class="paint-tool-btn active" data-size="28">🖌️ Pincel</button>
+                    <button id="paint-size-lg" class="paint-tool-btn" data-size="54">🖍️ Crayón</button>
+                    <button id="paint-tool-eraser" class="paint-tool-btn">🧼 Borrar</button>
+                    <button id="paint-tool-clear" class="paint-tool-btn danger">🗑️ Limpiar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==========================================================================
+         Mini-Juego 2: Atrapa las Burbujas de Lectura
+         ========================================================================== -->
+    <div id="bubbles-stage" class="beach-stage bubbles-stage">
+        <header class="substage-bar bubbles-bar">
+            <button id="bubbles-back-btn" class="substage-back-btn" title="Volver al juego">⬅️ Volver</button>
+            <div class="substage-word-badge bubbles-mission-badge">
+                <span class="substage-badge-label">🫧 Atrapa las que dicen:</span>
+                <span class="substage-badge-word" id="bubbles-target-word">MAMÁ</span>
+                <button id="bubbles-audio-btn" class="substage-audio-btn" title="Escuchar">🔊</button>
+            </div>
+            <div class="bubbles-score-badge">
+                <span class="bubbles-score-icon">⭐</span>
+                <span id="bubbles-score-text">0 / 3</span>
+            </div>
+        </header>
+
+        <div class="bubbles-arena" id="bubbles-arena">
+            <!-- Floating bubbles injected dynamically -->
+        </div>
+
+        <!-- Bubbles Win Overlay -->
+        <div class="bubbles-win-overlay" id="bubbles-win-overlay">
+            <div class="bubbles-win-card">
+                <div class="win-stars-burst">🌈⭐🎉</div>
+                <h2>¡Excelente Lectura, Emma!</h2>
+                <p>¡Atrapaste todas las burbujas correctas!</p>
+                <div class="bubbles-win-actions">
+                    <button id="bubbles-play-again-btn" class="welcome-choice-btn play-btn">
+                        <span class="choice-icon">🎈</span>
+                        <div class="choice-text">
+                            <span class="choice-title">¡Otra Palabra!</span>
+                            <span class="choice-desc">Seguir jugando burbujas</span>
+                        </div>
+                    </button>
+                    <button id="bubbles-done-btn" class="welcome-choice-btn chest-btn">
+                        <span class="choice-icon">🚀</span>
+                        <div class="choice-text">
+                            <span class="choice-title">Volver al Juego</span>
+                            <span class="choice-desc">Continuar el viaje de lectura</span>
+                        </div>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==========================================================================
+         Modal de Recreo / Nivel Superado (Elección al terminar o desde botón)
+         ========================================================================== -->
+    <div class="modal-backdrop" id="recess-modal">
+        <div class="modal-card recess-card">
+            <div class="recess-avatar">🎉👧⭐</div>
+            <h2 id="recess-modal-title">¡Increíble, Emma!</h2>
+            <p id="recess-modal-desc">Completaste este nivel. ¿Qué te gustaría hacer ahora?</p>
+            <div class="recess-words-preview" id="recess-words-preview">
+                <!-- Badges de palabras superadas -->
+            </div>
+            <div class="welcome-actions">
+                <button id="recess-btn-paint" class="welcome-choice-btn paint-btn">
+                    <span class="choice-icon">🎨</span>
+                    <div class="choice-text">
+                        <span class="choice-title">Pintar la Palabra</span>
+                        <span class="choice-desc">Colorear letras y dibujos con tus deditos</span>
+                    </div>
+                    <span class="choice-badge">✨</span>
+                </button>
+                <button id="recess-btn-bubbles" class="welcome-choice-btn bubbles-btn">
+                    <span class="choice-icon">🎈</span>
+                    <div class="choice-text">
+                        <span class="choice-title">Burbujas de Palabras</span>
+                        <span class="choice-desc">Atrapa y revienta burbujas flotantes</span>
+                    </div>
+                    <span class="choice-badge">🫧</span>
+                </button>
+                <button id="recess-btn-next-level" class="welcome-choice-btn play-btn">
+                    <span class="choice-icon">🚀</span>
+                    <div class="choice-text">
+                        <span class="choice-title">Siguiente Nivel</span>
+                        <span class="choice-desc">Continuar descubriendo más palabras</span>
+                    </div>
+                    <span class="choice-badge">⭐</span>
+                </button>
+                <button id="recess-btn-close" class="btn-parents-link">Cerrar recreo ✕</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Level Complete Celebration Modal -->
     <div class="level-complete-banner" id="level-complete-banner">
         <div class="star-burst">⭐</div>
@@ -399,7 +540,7 @@
     </div>
 
     <!-- UI Controller Script -->
-    <script src="script.js?v=2.7"></script>
+    <script src="script.js?v=2.8"></script>
 </body>
 
 </html>

@@ -34,6 +34,41 @@ const phaseTransitionIcon = document.getElementById('phase-transition-icon');
 const restartToast = document.getElementById('restart-toast');
 const restartToastText = document.getElementById('restart-toast-text');
 
+// Modo Recreo Elements
+const recessNavBtn = document.getElementById('recess-nav-btn');
+const welcomeRecessBtn = document.getElementById('welcome-recess-btn');
+const recessModal = document.getElementById('recess-modal');
+const recessModalTitle = document.getElementById('recess-modal-title');
+const recessModalDesc = document.getElementById('recess-modal-desc');
+const recessWordsPreview = document.getElementById('recess-words-preview');
+const recessBtnPaint = document.getElementById('recess-btn-paint');
+const recessBtnBubbles = document.getElementById('recess-btn-bubbles');
+const recessBtnNextLevel = document.getElementById('recess-btn-next-level');
+const recessBtnClose = document.getElementById('recess-btn-close');
+
+// Mini-Juego 1: Pintar la Palabra Mágica
+const paintStage = document.getElementById('paint-stage');
+const paintBackBtn = document.getElementById('paint-back-btn');
+const paintWordDisplay = document.getElementById('paint-word-display');
+const paintAudioBtn = document.getElementById('paint-audio-btn');
+const paintWordsSelector = document.getElementById('paint-words-selector');
+const paintDoneBtn = document.getElementById('paint-done-btn');
+const paintCanvas = document.getElementById('paint-canvas');
+const paintCanvasContainer = document.getElementById('paint-canvas-container');
+const paintToolEraser = document.getElementById('paint-tool-eraser');
+const paintToolClear = document.getElementById('paint-tool-clear');
+
+// Mini-Juego 2: Atrapa las Burbujas de Lectura
+const bubblesStage = document.getElementById('bubbles-stage');
+const bubblesBackBtn = document.getElementById('bubbles-back-btn');
+const bubblesTargetWord = document.getElementById('bubbles-target-word');
+const bubblesAudioBtn = document.getElementById('bubbles-audio-btn');
+const bubblesScoreText = document.getElementById('bubbles-score-text');
+const bubblesArena = document.getElementById('bubbles-arena');
+const bubblesWinOverlay = document.getElementById('bubbles-win-overlay');
+const bubblesPlayAgainBtn = document.getElementById('bubbles-play-again-btn');
+const bubblesDoneBtn = document.getElementById('bubbles-done-btn');
+
 // Modals
 const welcomeModal = document.getElementById('welcome-modal');
 const startGameBtn = document.getElementById('start-game-btn');
@@ -220,6 +255,12 @@ function setupUIEventListeners() {
             if (audioService) audioService.playPop();
             if (magicBeachStage) magicBeachStage.classList.remove('active');
             if (beachCardOverlay) beachCardOverlay.classList.remove('active');
+            if (paintStage) paintStage.classList.remove('active');
+            if (bubblesStage) {
+                bubblesStage.classList.remove('active');
+                stopBubblesSpawner();
+            }
+            if (recessModal) recessModal.classList.remove('active');
             if (parentModal) parentModal.classList.remove('active');
             if (restModal) restModal.classList.remove('active');
             if (welcomeModal) {
@@ -227,6 +268,89 @@ function setupUIEventListeners() {
                 welcomeModal.style.display = 'flex';
             }
         });
+    }
+
+    // Modo Recreo Listeners
+    if (recessNavBtn) {
+        recessNavBtn.addEventListener('click', () => {
+            if (audioService) audioService.playPop();
+            openRecessModal();
+        });
+    }
+
+    if (welcomeRecessBtn) {
+        welcomeRecessBtn.addEventListener('click', () => {
+            if (audioService) audioService.playPop();
+            if (welcomeModal) {
+                welcomeModal.classList.remove('active');
+                welcomeModal.style.display = 'none';
+            }
+            openRecessModal();
+        });
+    }
+
+    if (recessBtnPaint) {
+        recessBtnPaint.addEventListener('click', () => {
+            closeRecessModal();
+            openPaintStage();
+        });
+    }
+
+    if (recessBtnBubbles) {
+        recessBtnBubbles.addEventListener('click', () => {
+            closeRecessModal();
+            openBubblesStage();
+        });
+    }
+
+    if (recessBtnNextLevel) {
+        recessBtnNextLevel.addEventListener('click', () => {
+            closeRecessModal();
+            proceedToNextLevelFromRecess();
+        });
+    }
+
+    if (recessBtnClose) {
+        recessBtnClose.addEventListener('click', closeRecessModal);
+    }
+
+    // Mini-Juego 1: Pintar - Controles
+    if (paintBackBtn) {
+        paintBackBtn.addEventListener('click', closePaintStage);
+    }
+    if (paintDoneBtn) {
+        paintDoneBtn.addEventListener('click', finishPaintDrawing);
+    }
+    if (paintAudioBtn) {
+        paintAudioBtn.addEventListener('click', () => {
+            if (audioService && currentPaintWord) {
+                audioService.speakWord(currentPaintWord);
+            }
+        });
+    }
+    if (paintToolClear) {
+        paintToolClear.addEventListener('click', clearPaintCanvas);
+    }
+
+    // Mini-Juego 2: Burbujas - Controles
+    if (bubblesBackBtn) {
+        bubblesBackBtn.addEventListener('click', closeBubblesStage);
+    }
+    if (bubblesAudioBtn) {
+        bubblesAudioBtn.addEventListener('click', () => {
+            if (audioService && bubblesTarget) {
+                audioService.speakWord(bubblesTarget);
+            }
+        });
+    }
+    if (bubblesPlayAgainBtn) {
+        bubblesPlayAgainBtn.addEventListener('click', () => {
+            if (bubblesWinOverlay) bubblesWinOverlay.classList.remove('active');
+            pickNextBubbleTarget();
+        });
+    }
+    if (bubblesDoneBtn) {
+        bubblesDoneBtn.addEventListener('click', closeBubblesStage);
     }
 
     if (welcomeParentsBtn) {
@@ -760,6 +884,8 @@ function onLevelComplete(data) {
     levelCompleteBanner.classList.add('active');
     setTimeout(() => {
         levelCompleteBanner.classList.remove('active');
+        // Open Recess Modal so Emma can choose to Paint, Play Bubbles, or Go to Next Level!
+        openRecessModal(data.words || [], true);
     }, 1800);
 }
 
@@ -1311,6 +1437,530 @@ async function playFromBeach() {
         currentBeachUnit ? currentBeachUnit.name : 'Mi Familia',
         currentBeachUnit ? currentBeachUnit.themeClass : 'theme-family'
     );
+}
+
+// ============================================================================
+// MODO RECREO & MINI-JUEGOS PEDAGÓGICOS (PINTAR Y BURBUJAS)
+// ============================================================================
+
+let currentRecessWords = ['Mamá', 'Papá', 'Emma'];
+
+/**
+ * Open Recess Choice Modal
+ */
+function openRecessModal(words = null, isLevelComplete = false) {
+    if (words && words.length > 0) {
+        currentRecessWords = words;
+    } else if (gameEngine && gameEngine.currentLevel && gameEngine.currentLevel.words) {
+        currentRecessWords = gameEngine.currentLevel.words;
+    }
+
+    if (recessModalTitle) {
+        recessModalTitle.textContent = isLevelComplete ? '¡Lo lograste, Emma! 🎉' : '¡Tiempo de Recreo! 🎈';
+    }
+    if (recessModalDesc) {
+        recessModalDesc.textContent = isLevelComplete 
+            ? '¡Completaste este nivel con éxito! ¿Qué te gustaría hacer ahora?'
+            : 'Tómate un descanso divertido y sigue aprendiendo a leer.';
+    }
+
+    // Render Preview Tags of words
+    if (recessWordsPreview) {
+        recessWordsPreview.innerHTML = '';
+        currentRecessWords.forEach(w => {
+            const tag = document.createElement('span');
+            tag.className = 'recess-word-tag';
+            tag.textContent = w;
+            tag.style.cursor = 'pointer';
+            tag.title = 'Toca para escuchar';
+            tag.addEventListener('click', () => {
+                if (audioService) {
+                    audioService.playPop();
+                    audioService.speakWord(w);
+                }
+            });
+            recessWordsPreview.appendChild(tag);
+        });
+    }
+
+    if (recessModal) {
+        recessModal.classList.add('active');
+        recessModal.style.display = 'flex';
+    }
+}
+
+function closeRecessModal() {
+    if (recessModal) {
+        recessModal.classList.remove('active');
+        recessModal.style.display = 'none';
+    }
+}
+
+async function proceedToNextLevelFromRecess() {
+    if (audioService) audioService.playPop();
+    closeRecessModal();
+
+    if (!gameEngine) {
+        const curriculum = await loadCurriculum();
+        gameEngine = new GameEngine(curriculum);
+        setupGameCallbacks();
+    }
+
+    if (!gameEngine.sessionController.sessionActive) {
+        await gameEngine.startSession();
+    } else {
+        await gameEngine.loadNextLevel();
+    }
+}
+
+// ----------------------------------------------------------------------------
+// MINI-JUEGO 1: PINTAR LA PALABRA MÁGICA
+// ----------------------------------------------------------------------------
+let currentPaintWord = 'Mamá';
+let paintBrushColor = '#EF4444';
+let paintBrushSize = 28;
+let paintIsRainbow = false;
+let paintRainbowHue = 0;
+let paintIsDrawing = false;
+let paintLastX = 0;
+let paintLastY = 0;
+let paintInitialized = false;
+
+function openPaintStage(wordToPaint = null) {
+    if (paintStage) paintStage.classList.add('active');
+
+    if (wordToPaint) {
+        currentPaintWord = wordToPaint;
+    } else if (currentRecessWords && currentRecessWords.length > 0) {
+        currentPaintWord = currentRecessWords[0];
+    } else {
+        currentPaintWord = 'Mamá';
+    }
+
+    // Render word selector pills
+    renderPaintWordPills();
+
+    // Setup canvas
+    setupPaintCanvas();
+
+    if (!paintInitialized) {
+        setupPaintToolListeners();
+        paintInitialized = true;
+    }
+
+    // Speak initial word
+    if (audioService) {
+        audioService.playPop();
+        setTimeout(() => audioService.speakWord(currentPaintWord), 250);
+    }
+}
+
+function closePaintStage() {
+    if (audioService) audioService.playPop();
+    if (paintStage) paintStage.classList.remove('active');
+}
+
+function renderPaintWordPills() {
+    if (!paintWordsSelector) return;
+    paintWordsSelector.innerHTML = '';
+
+    const wordsToShow = (currentRecessWords && currentRecessWords.length > 0)
+        ? currentRecessWords
+        : ['Mamá', 'Papá', 'Emma'];
+
+    wordsToShow.forEach(word => {
+        const pill = document.createElement('button');
+        pill.className = `paint-word-pill ${word.toLowerCase() === currentPaintWord.toLowerCase() ? 'active' : ''}`;
+        pill.textContent = word;
+        pill.addEventListener('click', () => {
+            if (audioService) audioService.playPop();
+            currentPaintWord = word;
+            renderPaintWordPills();
+            renderPaintTemplate(currentPaintWord);
+            if (audioService) audioService.speakWord(currentPaintWord);
+        });
+        paintWordsSelector.appendChild(pill);
+    });
+
+    if (paintWordDisplay) {
+        paintWordDisplay.textContent = currentPaintWord.toUpperCase();
+    }
+}
+
+function setupPaintCanvas() {
+    if (!paintCanvas || !paintCanvasContainer) return;
+
+    const rect = paintCanvasContainer.getBoundingClientRect();
+    const dpr = window.devicePixelRatio || 1;
+
+    paintCanvas.width = rect.width * dpr;
+    paintCanvas.height = rect.height * dpr;
+
+    const ctx = paintCanvas.getContext('2d');
+    ctx.scale(dpr, dpr);
+
+    renderPaintTemplate(currentPaintWord);
+    setupPaintTouchHandlers();
+}
+
+function renderPaintTemplate(word) {
+    if (!paintCanvas || !paintCanvasContainer) return;
+    const ctx = paintCanvas.getContext('2d');
+    const rect = paintCanvasContainer.getBoundingClientRect();
+    const w = rect.width;
+    const h = rect.height;
+
+    // Clean background
+    ctx.fillStyle = '#FFFFFF';
+    ctx.fillRect(0, 0, w, h);
+
+    // Optional sticker watermark
+    const assetUrl = (typeof AssetProvider !== 'undefined') ? AssetProvider.getAsset(word) : null;
+    if (assetUrl) {
+        const img = new Image();
+        img.onload = () => {
+            ctx.save();
+            ctx.globalAlpha = 0.28;
+            const imgSize = Math.min(w, h) * 0.45;
+            ctx.drawImage(img, w - imgSize - 20, (h - imgSize) / 2, imgSize, imgSize);
+            ctx.restore();
+            drawWordOutlineText(ctx, word, w, h);
+        };
+        img.src = assetUrl;
+    } else {
+        drawWordOutlineText(ctx, word, w, h);
+    }
+}
+
+function drawWordOutlineText(ctx, word, w, h) {
+    ctx.save();
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+
+    // Responsive font size
+    const fontSize = Math.min(w / (word.length * 0.75), h * 0.32, 110);
+    ctx.font = `900 ${fontSize}px 'Fredoka', cursive, sans-serif`;
+
+    const cx = w * 0.45;
+    const cy = h / 2;
+
+    // Soft colored background fill
+    ctx.fillStyle = 'rgba(241, 245, 249, 0.85)';
+    ctx.fillText(word.toUpperCase(), cx, cy);
+
+    // Dotted tracing contour
+    ctx.strokeStyle = '#94A3B8';
+    ctx.lineWidth = 5;
+    ctx.setLineDash([10, 8]);
+    ctx.lineJoin = 'round';
+    ctx.strokeText(word.toUpperCase(), cx, cy);
+
+    ctx.restore();
+}
+
+function getPaintCoords(e) {
+    const rect = paintCanvas.getBoundingClientRect();
+    return {
+        x: e.clientX - rect.left,
+        y: e.clientY - rect.top
+    };
+}
+
+function setupPaintTouchHandlers() {
+    paintCanvas.onpointerdown = (e) => {
+        paintCanvas.setPointerCapture(e.pointerId);
+        paintIsDrawing = true;
+        const coords = getPaintCoords(e);
+        paintLastX = coords.x;
+        paintLastY = coords.y;
+
+        const ctx = paintCanvas.getContext('2d');
+        ctx.beginPath();
+        ctx.arc(coords.x, coords.y, paintBrushSize / 2, 0, Math.PI * 2);
+        ctx.fillStyle = getActiveBrushColor();
+        ctx.fill();
+    };
+
+    paintCanvas.onpointermove = (e) => {
+        if (!paintIsDrawing) return;
+        if (e.cancelable) e.preventDefault();
+
+        const coords = getPaintCoords(e);
+        const ctx = paintCanvas.getContext('2d');
+
+        ctx.beginPath();
+        ctx.moveTo(paintLastX, paintLastY);
+        ctx.lineTo(coords.x, coords.y);
+        ctx.strokeStyle = getActiveBrushColor();
+        ctx.lineWidth = paintBrushSize;
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+        ctx.stroke();
+
+        paintLastX = coords.x;
+        paintLastY = coords.y;
+
+        if (paintIsRainbow) {
+            paintRainbowHue = (paintRainbowHue + 5) % 360;
+        }
+    };
+
+    const stopDrawing = (e) => {
+        if (paintIsDrawing) {
+            paintIsDrawing = false;
+            try { paintCanvas.releasePointerCapture(e.pointerId); } catch(err) {}
+        }
+    };
+
+    paintCanvas.onpointerup = stopDrawing;
+    paintCanvas.onpointercancel = stopDrawing;
+}
+
+function getActiveBrushColor() {
+    if (paintIsRainbow) {
+        return `hsl(${paintRainbowHue}, 90%, 55%)`;
+    }
+    return paintBrushColor;
+}
+
+function setupPaintToolListeners() {
+    // Color buttons
+    const colorBtns = document.querySelectorAll('.paint-color-btn');
+    colorBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            colorBtns.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+
+            const color = btn.dataset.color;
+            if (color === 'rainbow') {
+                paintIsRainbow = true;
+            } else {
+                paintIsRainbow = false;
+                paintBrushColor = color;
+            }
+            if (audioService) audioService.playPop();
+        });
+    });
+
+    // Brush size buttons
+    const sizeBtns = [
+        { id: 'paint-size-sm', size: 12 },
+        { id: 'paint-size-md', size: 28 },
+        { id: 'paint-size-lg', size: 54 }
+    ];
+    sizeBtns.forEach(item => {
+        const btn = document.getElementById(item.id);
+        if (btn) {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.paint-tools-palette .paint-tool-btn:not(#paint-tool-eraser):not(#paint-tool-clear)').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                paintBrushSize = item.size;
+                if (audioService) audioService.playPop();
+            });
+        }
+    });
+
+    // Eraser button
+    if (paintToolEraser) {
+        paintToolEraser.addEventListener('click', () => {
+            document.querySelectorAll('.paint-color-btn').forEach(b => b.classList.remove('active'));
+            paintIsRainbow = false;
+            paintBrushColor = '#FFFFFF';
+            if (audioService) audioService.playPop();
+        });
+    }
+}
+
+function clearPaintCanvas() {
+    if (audioService) audioService.playGentleBounce();
+    renderPaintTemplate(currentPaintWord);
+}
+
+function finishPaintDrawing() {
+    if (audioService) {
+        audioService.playFanfare();
+        audioService.speakPraise(currentPaintWord);
+    }
+
+    // Increase star count as reward for creative activity!
+    totalStarsCollected++;
+    if (starCount) starCount.textContent = totalStarsCollected;
+
+    // Friendly celebration toast
+    if (restartToast) {
+        if (restartToastText) {
+            restartToastText.textContent = `¡Qué dibujo tan hermoso de ${currentPaintWord}! 🎨⭐`;
+        }
+        restartToast.classList.add('active');
+        setTimeout(() => restartToast.classList.remove('active'), 2500);
+    }
+}
+
+// ----------------------------------------------------------------------------
+// MINI-JUEGO 2: ATRAPA LAS BURBUJAS DE LECTURA
+// ----------------------------------------------------------------------------
+let bubblesTarget = 'Mamá';
+let bubblesScore = 0;
+const bubblesTargetScore = 3;
+let bubblesSpawnerTimer = null;
+
+function openBubblesStage() {
+    if (bubblesStage) bubblesStage.classList.add('active');
+    pickNextBubbleTarget();
+}
+
+function closeBubblesStage() {
+    if (audioService) audioService.playPop();
+    stopBubblesSpawner();
+    if (bubblesStage) bubblesStage.classList.remove('active');
+    if (bubblesWinOverlay) bubblesWinOverlay.classList.remove('active');
+}
+
+function pickNextBubbleTarget() {
+    stopBubblesSpawner();
+    bubblesScore = 0;
+    if (bubblesScoreText) bubblesScoreText.textContent = `0 / ${bubblesTargetScore}`;
+
+    const wordsPool = (currentRecessWords && currentRecessWords.length > 0)
+        ? currentRecessWords
+        : ['Mamá', 'Papá', 'Sol', 'Pan', 'Emma'];
+
+    // Pick a target word
+    const randomIdx = Math.floor(Math.random() * wordsPool.length);
+    bubblesTarget = wordsPool[randomIdx];
+
+    if (bubblesTargetWord) {
+        bubblesTargetWord.textContent = bubblesTarget.toUpperCase();
+    }
+
+    // Audio prompt from Salomé
+    if (audioService) {
+        audioService.playPop();
+        setTimeout(() => {
+            audioService.speakWord(bubblesTarget);
+        }, 300);
+    }
+
+    // Clear old bubbles in arena
+    if (bubblesArena) {
+        bubblesArena.querySelectorAll('.floating-bubble').forEach(b => b.remove());
+    }
+
+    // Start spawner
+    startBubblesSpawner(wordsPool);
+}
+
+function startBubblesSpawner(wordsPool) {
+    stopBubblesSpawner();
+
+    // Spawn first bubble immediately
+    spawnOneBubble(wordsPool);
+
+    // And periodically every 1.5s
+    bubblesSpawnerTimer = setInterval(() => {
+        spawnOneBubble(wordsPool);
+    }, 1500);
+}
+
+function stopBubblesSpawner() {
+    if (bubblesSpawnerTimer) {
+        clearInterval(bubblesSpawnerTimer);
+        bubblesSpawnerTimer = null;
+    }
+}
+
+function spawnOneBubble(wordsPool) {
+    if (!bubblesArena || !bubblesStage.classList.contains('active')) return;
+
+    const arenaRect = bubblesArena.getBoundingClientRect();
+    if (arenaRect.width <= 0) return;
+
+    // 45% chance of being target word, 55% distractor
+    const isTarget = Math.random() < 0.45;
+    let word = bubblesTarget;
+    if (!isTarget) {
+        const distractors = wordsPool.filter(w => w.toLowerCase() !== bubblesTarget.toLowerCase());
+        word = (distractors.length > 0) 
+            ? distractors[Math.floor(Math.random() * distractors.length)] 
+            : 'Sol';
+    }
+
+    const bubble = document.createElement('div');
+    bubble.className = 'floating-bubble';
+    bubble.dataset.word = word.toLowerCase();
+
+    const wordSpan = document.createElement('span');
+    wordSpan.className = 'bubble-word-text';
+    wordSpan.textContent = word.toLowerCase();
+    bubble.appendChild(wordSpan);
+
+    const bubbleWidth = Math.min(130, arenaRect.width * 0.28);
+    const minX = 16;
+    const maxX = Math.max(16, arenaRect.width - bubbleWidth - 16);
+    const randomX = Math.floor(Math.random() * (maxX - minX + 1)) + minX;
+    const duration = (Math.random() * 3 + 7).toFixed(1); // 7s - 10s
+
+    bubble.style.left = `${randomX}px`;
+    bubble.style.bottom = `-140px`;
+    bubble.style.transition = `transform ${duration}s linear, opacity 0.3s ease`;
+
+    bubblesArena.appendChild(bubble);
+
+    // Trigger float animation via requestAnimationFrame
+    requestAnimationFrame(() => {
+        bubble.style.transform = `translateY(-${arenaRect.height + 260}px)`;
+    });
+
+    // Tap/Pointer listener
+    bubble.addEventListener('pointerdown', (e) => {
+        e.stopPropagation();
+        handleBubbleTap(bubble, word);
+    });
+
+    // Remove when out of screen
+    setTimeout(() => {
+        if (bubble.parentElement) bubble.remove();
+    }, duration * 1000 + 400);
+}
+
+function handleBubbleTap(bubble, word) {
+    if (bubble.classList.contains('popping')) return;
+
+    const isMatch = word.toLowerCase() === bubblesTarget.toLowerCase();
+
+    if (isMatch) {
+        bubble.classList.add('popping');
+        if (audioService) {
+            audioService.playPop();
+            audioService.speakPraise(word);
+        }
+
+        bubblesScore++;
+        if (bubblesScoreText) {
+            bubblesScoreText.textContent = `${bubblesScore} / ${bubblesTargetScore}`;
+        }
+
+        setTimeout(() => bubble.remove(), 300);
+
+        if (bubblesScore >= bubblesTargetScore) {
+            // Level win!
+            stopBubblesSpawner();
+            setTimeout(() => {
+                if (audioService) audioService.playFanfare();
+                totalStarsCollected++;
+                if (starCount) starCount.textContent = totalStarsCollected;
+                if (bubblesWinOverlay) bubblesWinOverlay.classList.add('active');
+            }, 500);
+        }
+    } else {
+        // Wrong bubble: soft bounce, read the word so Emma learns it!
+        bubble.classList.add('wrong-bubble');
+        if (audioService) {
+            audioService.playGentleBounce();
+            audioService.speakWord(word);
+        }
+        setTimeout(() => bubble.classList.remove('wrong-bubble'), 600);
+    }
 }
 
 // 1-Click Forced Purge & Update in Parents Zone

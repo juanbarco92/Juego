@@ -305,21 +305,15 @@ class GameEngine {
             });
         }
 
-        // Callback to UI
+        // Callback to UI (UI controls the celebration and next action)
         if (this.callbacks.onLevelComplete) {
             this.callbacks.onLevelComplete({
                 levelNumber: this.levelsCompletedThisSession,
                 duration: levelDuration,
-                words: this.currentLevel.words
+                words: this.currentLevel.words,
+                levelData: this.currentLevel.data
             });
         }
-
-        // Auto-load next level after celebration
-        setTimeout(() => {
-            if (this.sessionController.isActive()) {
-                this.loadNextLevel();
-            }
-        }, 2000);
     }
 
     /**
