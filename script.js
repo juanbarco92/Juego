@@ -973,3 +973,15 @@ async function playNowFromChest() {
         await gameEngine.startSession();
     }
 }
+
+// Register Service Worker with proactive update check on load
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js').then((reg) => {
+            reg.update();
+            console.log('📦 Service Worker registrado y verificado para v2.4');
+        }).catch((err) => {
+            console.debug('Service Worker:', err);
+        });
+    });
+}

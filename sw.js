@@ -1,4 +1,4 @@
-const CACHE_NAME = 'emma-aprende-v4';
+const CACHE_NAME = 'emma-aprende-v5';
 const urlsToCache = [
     './',
     './index.html',
@@ -12,60 +12,76 @@ const urlsToCache = [
     './src/core/GameEngine.js'
 ];
 
-// Install service worker
+// Install service worker & cache critical shell
 self.addEventListener('install', function(event) {
     self.skipWaiting();
     event.waitUntil(
-        caches.open(CACHE_NAME)
-            .then(function(cache) {
-                return cache.addAll(urlsToCache);
-            })
+        caches.open(CACHE_NAME).then(function(cache) {
+            return cache.addAll(urlsToCache);
+        })
     );
 });
 
-// Fetch cached resources with dynamic caching for audio and images
+// Activate & immediately claim clients + purge all previous caches
+self.addEventListener('activate', function(event) {
+    event.waitUntil(
+        Promise.all([
+            self.clients.claim(),
+            caches.keys().then(function(cacheNames) {
+                return Promise.all(
+                    cacheNames.map(function(cacheName) {
+                        if (cacheName !== CACHE_NAME) {
+                            console.log('Purgando caché antiguo:', cacheName);
+                            return caches.delete(cacheName);
+                        }
+                    })
+                );
+            })
+        ])
+    );
+});
+
+// Fetch with smart strategy: Network-First for core code, Cache-First for media
 self.addEventListener('fetch', function(event) {
     if (event.request.method !== 'GET') return;
 
-    event.respondWith(
-        caches.match(event.request)
-            .then(function(response) {
-                if (response) {
-                    return response;
-                }
-                
-                return fetch(event.request).then(function(networkResponse) {
-                    if (!networkResponse || networkResponse.status !== 200 || networkResponse.type !== 'basic') {
-                        return networkResponse;
-                    }
+    const url = event.request.url;
+    const isCoreFile = url.endsWith('.html') || url.endsWith('.js') || url.endsWith('.css') || url.endsWith('/') || url.includes('/src/');
 
-                    // Dynamically cache audio files and images
-                    const url = event.request.url;
-                    if (url.includes('/audio/') || url.includes('/images/')) {
-                        const responseToCache = networkResponse.clone();
+    if (isCoreFile) {
+        // Network-First strategy: Ensures user always sees latest code if online, works offline if network fails
+        event.respondWith(
+            fetch(event.request)
+                .then(function(networkResponse) {
+                    if (networkResponse && networkResponse.status === 200) {
+                        const copy = networkResponse.clone();
                         caches.open(CACHE_NAME).then(function(cache) {
-                            cache.put(event.request, responseToCache);
+                            cache.put(event.request, copy);
                         });
                     }
-
+                    return networkResponse;
+                })
+                .catch(function() {
+                    return caches.match(event.request);
+                })
+        );
+    } else {
+        // Cache-First strategy for media assets (images, audio, fonts)
+        event.respondWith(
+            caches.match(event.request).then(function(cachedResponse) {
+                if (cachedResponse) {
+                    return cachedResponse;
+                }
+                return fetch(event.request).then(function(networkResponse) {
+                    if (networkResponse && networkResponse.status === 200) {
+                        const copy = networkResponse.clone();
+                        caches.open(CACHE_NAME).then(function(cache) {
+                            cache.put(event.request, copy);
+                        });
+                    }
                     return networkResponse;
                 });
             })
-    );
+        );
+    }
 });
-
-// Update service worker
-self.addEventListener('activate', function(event) {
-    event.waitUntil(
-        caches.keys().then(function(cacheNames) {
-            return Promise.all(
-                cacheNames.map(function(cacheName) {
-                    if (cacheName !== CACHE_NAME) {
-                        console.log('Eliminando caché antiguo:', cacheName);
-                        return caches.delete(cacheName);
-                    }
-                })
-            );
-        })
-    );
-}); 

@@ -218,6 +218,17 @@ html, body {
     letter-spacing: -0.5px;
 }
 
+.build-badge {
+    font-size: 0.72rem;
+    font-weight: 700;
+    background: #E0E7FF;
+    color: #4338CA;
+    padding: 2px 7px;
+    border-radius: 10px;
+    letter-spacing: 0.3px;
+    margin-left: 2px;
+}
+
 /* El Cielo de Emma (Progreso del Sol) */
 .sky-progress-container {
     flex: 1;
