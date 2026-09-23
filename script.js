@@ -974,12 +974,54 @@ async function playNowFromChest() {
     }
 }
 
-// Register Service Worker with proactive update check on load
+// 1-Click Forced Purge & Update in Parents Zone
+const forceUpdateBtn = document.getElementById('force-update-btn');
+if (forceUpdateBtn) {
+    forceUpdateBtn.addEventListener('click', async () => {
+        try {
+            forceUpdateBtn.textContent = 'Actualizando... ⏳';
+            if ('caches' in window) {
+                const keys = await caches.keys();
+                await Promise.all(keys.map(k => caches.delete(k)));
+            }
+            if ('serviceWorker' in navigator) {
+                const regs = await navigator.serviceWorker.getRegistrations();
+                for (let reg of regs) {
+                    await reg.unregister();
+                }
+            }
+            window.location.reload(true);
+        } catch (e) {
+            window.location.reload();
+        }
+    });
+}
+
+// Register Service Worker with proactive auto-refresh when updated
 if ('serviceWorker' in navigator) {
+    let refreshing = false;
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+        if (!refreshing) {
+            refreshing = true;
+            console.log('🔄 Nueva versión detectada, recargando aplicación...');
+            window.location.reload();
+        }
+    });
+
     window.addEventListener('load', () => {
-        navigator.serviceWorker.register('sw.js').then((reg) => {
+        navigator.serviceWorker.register('sw.js?v=2.4').then((reg) => {
             reg.update();
-            console.log('📦 Service Worker registrado y verificado para v2.4');
+            reg.addEventListener('updatefound', () => {
+                const newWorker = reg.installing;
+                if (newWorker) {
+                    newWorker.addEventListener('statechange', () => {
+                        if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                            newWorker.postMessage({ action: 'skipWaiting' });
+                        }
+                    });
+                }
+            });
+            console.log('📦 Service Worker activo y verificado');
         }).catch((err) => {
             console.debug('Service Worker:', err);
         });

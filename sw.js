@@ -22,6 +22,13 @@ self.addEventListener('install', function(event) {
     );
 });
 
+// Immediate activation message listener
+self.addEventListener('message', function(event) {
+    if (event.data && event.data.action === 'skipWaiting') {
+        self.skipWaiting();
+    }
+});
+
 // Activate & immediately claim clients + purge all previous caches
 self.addEventListener('activate', function(event) {
     event.waitUntil(
