@@ -332,7 +332,8 @@ function onLevelReady(levelData) {
     // Update Theme Title with cute storybook styling
     if (levelData.theme) {
         themeTitle.textContent = `${levelData.theme}`;
-    const elements = levelData.elements.filter(Boolean);
+    }
+    const elements = levelData.elements ? levelData.elements.filter(Boolean) : [];
 
     // Preload words in memory for instantaneous 0ms audio playback
     if (audioService && elements.length > 0) {
@@ -1009,7 +1010,7 @@ if ('serviceWorker' in navigator) {
     });
 
     window.addEventListener('load', () => {
-        navigator.serviceWorker.register('sw.js?v=2.4').then((reg) => {
+        navigator.serviceWorker.register('sw.js?v=2.5').then((reg) => {
             reg.update();
             reg.addEventListener('updatefound', () => {
                 const newWorker = reg.installing;

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'emma-aprende-v5';
+const CACHE_NAME = 'emma-aprende-v6';
 const urlsToCache = [
     './',
     './index.html',

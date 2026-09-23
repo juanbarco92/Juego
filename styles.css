@@ -593,14 +593,17 @@ html, body {
 .modal-card {
     background: #FFF;
     border-radius: 40px;
-    padding: 38px 34px;
+    padding: 32px 28px 24px;
     text-align: center;
-    max-width: 480px;
+    max-width: 450px;
     width: 90%;
+    max-height: 90vh;
+    overflow-y: auto;
     box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
     border: 5px solid #FEF08A;
     transform: scale(0.9);
     transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    box-sizing: border-box;
 }
 
 .modal-backdrop.active .modal-card {
@@ -608,21 +611,21 @@ html, body {
 }
 
 .welcome-avatar {
-    font-size: 4.5rem;
-    margin-bottom: 10px;
+    font-size: 3.8rem;
+    margin-bottom: 8px;
 }
 
 .modal-card h2 {
-    font-size: 2.3rem;
+    font-size: 2.1rem;
     color: #1E293B;
-    margin-bottom: 12px;
+    margin-bottom: 8px;
 }
 
 .modal-card p {
-    font-size: 1.25rem;
+    font-size: 1.15rem;
     color: #64748B;
-    margin-bottom: 26px;
-    line-height: 1.5;
+    margin-bottom: 18px;
+    line-height: 1.4;
 }
 
 .btn-play {
@@ -1048,42 +1051,88 @@ html, body {
 .welcome-actions {
     display: flex;
     flex-direction: column;
-    gap: 14px;
+    gap: 12px;
     width: 100%;
-    margin-top: 18px;
+    margin-top: 12px;
 }
 
-.btn-discovery {
-    background: linear-gradient(135deg, #FFB703, #FB8500);
-    color: #FFFFFF;
-    border: none;
-    border-radius: 20px;
+.welcome-choice-btn {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 16px;
     padding: 16px 20px;
+    border-radius: 22px;
+    border: 3.5px solid #FFF;
     cursor: pointer;
-    box-shadow: 0 6px 0 #D46B08, 0 10px 20px rgba(251, 133, 0, 0.35);
+    box-sizing: border-box;
+    text-align: left;
+    transition: transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.18s ease;
+}
+
+.welcome-choice-btn:hover {
+    transform: translateY(-2px) scale(1.02);
+}
+
+.welcome-choice-btn:active {
+    transform: translateY(3px);
+}
+
+.welcome-choice-btn.chest-btn {
+    background: linear-gradient(135deg, #FFB703 0%, #FB8500 100%);
+    color: #FFF;
+    box-shadow: 0 5px 0 #D46B08, 0 10px 22px rgba(251, 133, 0, 0.35);
+}
+
+.welcome-choice-btn.chest-btn:active {
+    box-shadow: 0 2px 0 #D46B08, 0 4px 10px rgba(251, 133, 0, 0.25);
+}
+
+.welcome-choice-btn.play-btn {
+    background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+    color: #FFF;
+    box-shadow: 0 5px 0 #047857, 0 10px 22px rgba(16, 185, 129, 0.35);
+}
+
+.welcome-choice-btn.play-btn:active {
+    box-shadow: 0 2px 0 #047857, 0 4px 10px rgba(16, 185, 129, 0.25);
+}
+
+.choice-icon {
+    font-size: 2.2rem;
+    line-height: 1;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+    flex-shrink: 0;
+}
+
+.choice-text {
+    flex: 1;
     display: flex;
     flex-direction: column;
-    align-items: center;
-    gap: 4px;
-    transition: transform 0.15s ease, box-shadow 0.15s ease;
+    gap: 2px;
 }
 
-.btn-discovery:active {
-    transform: translateY(4px);
-    box-shadow: 0 2px 0 #D46B08, 0 4px 10px rgba(251, 133, 0, 0.3);
-}
-
-.btn-main-text {
-    font-size: 1.4rem;
-    font-weight: 700;
+.choice-title {
     font-family: 'Fredoka', cursive, sans-serif;
+    font-size: 1.45rem;
+    font-weight: 700;
     letter-spacing: 0.5px;
+    line-height: 1.2;
+    color: #FFF;
 }
 
-.btn-subtext {
+.choice-desc {
+    font-family: 'Quicksand', sans-serif;
     font-size: 0.9rem;
     font-weight: 600;
-    opacity: 0.95;
+    color: rgba(255, 255, 255, 0.95);
+    line-height: 1.2;
+}
+
+.choice-badge {
+    font-size: 1.4rem;
+    flex-shrink: 0;
+    opacity: 0.9;
 }
 
 .home-btn {
@@ -1389,4 +1438,128 @@ html, body {
 .btn-chest-play:active {
     transform: translateY(3px);
     box-shadow: 0 2px 0 #048A66;
+}
+
+/* ==========================================================================
+   Diseño Adaptativo (iPad Portrait & Tablets)
+   ========================================================================== */
+
+@media (max-width: 860px) {
+    .app-container {
+        padding: 10px 14px;
+    }
+
+    .top-bar {
+        padding: 6px 14px;
+        gap: 10px;
+    }
+
+    .brand-name {
+        font-size: 1.15rem;
+    }
+
+    .build-badge {
+        display: none;
+    }
+
+    .sky-progress-container {
+        min-width: 60px;
+        max-width: 200px;
+    }
+
+    .star-jar {
+        padding: 4px 12px;
+        gap: 4px;
+    }
+
+    .star-count {
+        font-size: 1.15rem;
+    }
+
+    .quick-controls {
+        gap: 6px;
+    }
+
+    .icon-btn {
+        width: 38px;
+        height: 38px;
+        font-size: 1.1rem;
+    }
+
+    .spots-grid {
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 16px;
+    }
+
+    .word-card {
+        padding: 12px 26px;
+        font-size: 1.6rem;
+    }
+}
+
+@media (max-width: 600px) {
+    .app-container {
+        padding: 8px 10px;
+    }
+
+    .top-bar {
+        padding: 6px 8px;
+        gap: 6px;
+    }
+
+    .brand-avatar {
+        font-size: 1.5rem;
+    }
+
+    .brand-name {
+        display: none;
+    }
+
+    .sky-progress-container {
+        max-width: 100px;
+    }
+
+    .icon-btn {
+        width: 34px;
+        height: 34px;
+        font-size: 1rem;
+    }
+
+    .modal-card {
+        padding: 24px 16px;
+        border-radius: 28px;
+    }
+
+    .welcome-avatar {
+        font-size: 3.2rem;
+        margin-bottom: 6px;
+    }
+
+    .modal-card h2 {
+        font-size: 1.75rem;
+        margin-bottom: 6px;
+    }
+
+    .modal-card p {
+        font-size: 1rem;
+        margin-bottom: 16px;
+    }
+
+    .welcome-choice-btn {
+        padding: 12px 14px;
+        gap: 12px;
+        border-radius: 18px;
+    }
+
+    .choice-icon {
+        font-size: 1.8rem;
+    }
+
+    .choice-title {
+        font-size: 1.25rem;
+    }
+
+    .choice-desc {
+        font-size: 0.82rem;
+    }
 }

@@ -18,16 +18,16 @@
     <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Quicksand:wght@600;700&display=swap" rel="stylesheet">
 
     <!-- Styles -->
-    <link rel="stylesheet" href="styles.css?v=2.4">
+    <link rel="stylesheet" href="styles.css?v=2.5">
 
     <!-- Core Dependencies -->
-    <script src="src/data/curriculum.js?v=2.4"></script>
-    <script src="src/data/assets.js?v=2.4"></script>
-    <script src="src/services/AudioService.js?v=2.4"></script>
-    <script src="src/utils/StorageManager.js?v=2.4"></script>
-    <script src="src/managers/LearningManager.js?v=2.4"></script>
-    <script src="src/managers/SessionController.js?v=2.4"></script>
-    <script src="src/core/GameEngine.js?v=2.4"></script>
+    <script src="src/data/curriculum.js?v=2.5"></script>
+    <script src="src/data/assets.js?v=2.5"></script>
+    <script src="src/services/AudioService.js?v=2.5"></script>
+    <script src="src/utils/StorageManager.js?v=2.5"></script>
+    <script src="src/managers/LearningManager.js?v=2.5"></script>
+    <script src="src/managers/SessionController.js?v=2.5"></script>
+    <script src="src/core/GameEngine.js?v=2.5"></script>
 </head>
 
 <body>
@@ -53,7 +53,7 @@
             <div class="brand">
                 <span class="brand-avatar">👧</span>
                 <span class="brand-name">Emma Aprende</span>
-                <span class="build-badge">v2.4</span>
+                <span class="build-badge">v2.5</span>
             </div>
 
             <!-- The Sky Progress Metaphor (El Cielo de Emma) -->
@@ -126,15 +126,23 @@
             <h2>¡Hola, Emma!</h2>
             <p>¿Qué te gustaría hacer hoy?</p>
             <div class="welcome-actions">
-                <button id="start-chest-btn" class="btn-discovery">
-                    <span class="btn-main-text">📖 El Cofre Mágico</span>
-                    <span class="btn-subtext">Aprender palabras nuevas</span>
+                <button id="start-chest-btn" class="welcome-choice-btn chest-btn">
+                    <span class="choice-icon">📖</span>
+                    <div class="choice-text">
+                        <span class="choice-title">El Cofre Mágico</span>
+                        <span class="choice-desc">Aprender palabras nuevas</span>
+                    </div>
+                    <span class="choice-badge">✨</span>
                 </button>
-                <button id="start-game-btn" class="btn-play">
-                    <span class="btn-main-text">🎮 ¡A Jugar!</span>
-                    <span class="btn-subtext">Emparejar palabras</span>
+                <button id="start-game-btn" class="welcome-choice-btn play-btn">
+                    <span class="choice-icon">🎮</span>
+                    <div class="choice-text">
+                        <span class="choice-title">¡A Jugar!</span>
+                        <span class="choice-desc">Emparejar palabras</span>
+                    </div>
+                    <span class="choice-badge">🚀</span>
                 </button>
-                <button id="welcome-parents-btn" class="btn-parents-link">⚙️ Zona de Papás (Estadísticas)</button>
+                <button id="welcome-parents-btn" class="btn-parents-link">⚙️ Zona de Papás</button>
             </div>
         </div>
     </div>
@@ -299,7 +307,7 @@
     </div>
 
     <!-- UI Controller Script -->
-    <script src="script.js?v=2.4"></script>
+    <script src="script.js?v=2.5"></script>
 </body>
 
 </html>
