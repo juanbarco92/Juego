@@ -44,7 +44,11 @@ const mathError = document.getElementById('math-error');
 const parentDashboard = document.getElementById('parent-dashboard');
 const statWordsSeen = document.getElementById('stat-words-seen');
 const statWordsMastered = document.getElementById('stat-words-mastered');
-const statSessions = document.getElementById('stat-sessions');
+const statAccuracy = document.getElementById('stat-accuracy');
+const statAvgAttempts = document.getElementById('stat-avg-attempts');
+const wordStatsList = document.getElementById('word-stats-list');
+const parentWordFilters = document.getElementById('parent-word-filters');
+let currentStatsFilter = 'all';
 const parentAudioToggle = document.getElementById('parent-audio-toggle');
 const resetHistoryBtn = document.getElementById('reset-history-btn');
 
@@ -171,6 +175,21 @@ function setupUIEventListeners() {
             location.reload();
         }
     });
+
+    // Parent Word Stats Filter Pills
+    if (parentWordFilters) {
+        parentWordFilters.addEventListener('click', (e) => {
+            const btn = e.target.closest('.filter-pill');
+            if (!btn) return;
+
+            parentWordFilters.querySelectorAll('.filter-pill').forEach(p => p.classList.remove('active'));
+            btn.classList.add('active');
+
+            currentStatsFilter = btn.dataset.filter || 'all';
+            renderWordStatsDashboard(currentStatsFilter);
+            if (audioService) audioService.playPop();
+        });
+    }
 
     // Close Bedtime / Rest Modal
     restCloseBtn.addEventListener('click', () => {
@@ -299,55 +318,151 @@ function createSpotCard(element) {
 }
 
 /**
- * Create a Word Card (Tactile Button)
+ * Create a Word Card (Tactile Button with Unified Touch & Mouse Drag-and-Drop)
  */
 function createWordCard(element, colorClass = 'card-amber') {
     const card = document.createElement('div');
     card.className = `word-card ${colorClass}`;
     card.dataset.word = element.word.toLowerCase();
     card.textContent = element.word.toLowerCase();
-    card.draggable = true;
+    card.draggable = false; // Usamos nuestro motor táctil PointerEvents para soporte total en iPad
 
-    // --- Tap to Select & Pronounce ---
-    card.addEventListener('click', () => {
-        if (card.classList.contains('matched')) return;
-
-        // Toggle selection
-        if (selectedWordCard === card) {
-            card.classList.remove('selected');
-            selectedWordCard = null;
-            audioService.playPop();
-        } else {
-            if (selectedWordCard) selectedWordCard.classList.remove('selected');
-            selectedWordCard = card;
-            card.classList.add('selected');
-
-            // Play tactile pop & Pronounce immediately
-            audioService.playPop();
-            audioService.speakWord(element.word);
-        }
-    });
-
-    // --- Drag & Drop Events ---
-    card.addEventListener('dragstart', (e) => {
-        if (card.classList.contains('matched')) {
-            e.preventDefault();
-            return;
-        }
-
-        card.classList.add('dragging');
-        e.dataTransfer.setData('text/plain', card.dataset.word);
-        e.dataTransfer.effectAllowed = 'move';
-
-        // Pronounce when picked up
-        audioService.speakWord(element.word);
-    });
-
-    card.addEventListener('dragend', () => {
-        card.classList.remove('dragging');
-    });
-
+    setupCardDragAndDrop(card, element);
     return card;
+}
+
+/**
+ * Unified Pointer / Touch Drag & Drop for iPad & Desktop
+ */
+function setupCardDragAndDrop(card, element) {
+    let startX = 0;
+    let startY = 0;
+    let isDragging = false;
+    let dragClone = null;
+    let currentHoverSpot = null;
+
+    const onPointerDown = (e) => {
+        if (card.classList.contains('matched')) return;
+        if (e.button !== undefined && e.button !== 0) return; // Solo clic principal o touch
+
+        startX = e.clientX;
+        startY = e.clientY;
+        isDragging = false;
+
+        // Pronunciar palabra al tocarla
+        audioService.playPop();
+        audioService.speakWord(element.word);
+
+        window.addEventListener('pointermove', onPointerMove, { passive: false });
+        window.addEventListener('pointerup', onPointerUp);
+        window.addEventListener('pointercancel', onPointerUp);
+    };
+
+    const onPointerMove = (e) => {
+        const deltaX = e.clientX - startX;
+        const deltaY = e.clientY - startY;
+        const distance = Math.hypot(deltaX, deltaY);
+
+        if (!isDragging && distance > 8) {
+            isDragging = true;
+            card.classList.add('is-being-dragged');
+
+            // Deseleccionar cualquier tarjeta previa de toque
+            if (selectedWordCard) {
+                selectedWordCard.classList.remove('selected');
+                selectedWordCard = null;
+            }
+
+            // Crear clon táctil flotante que sigue el dedo
+            dragClone = card.cloneNode(true);
+            dragClone.classList.add('floating-drag-clone');
+            dragClone.classList.remove('is-being-dragged', 'selected');
+            dragClone.style.width = `${card.offsetWidth}px`;
+            dragClone.style.height = `${card.offsetHeight}px`;
+            dragClone.style.left = `${e.clientX}px`;
+            dragClone.style.top = `${e.clientY}px`;
+            document.body.appendChild(dragClone);
+        }
+
+        if (isDragging && dragClone) {
+            if (e.cancelable) e.preventDefault(); // Evitar scroll elástico de Safari en iPad
+
+            dragClone.style.left = `${e.clientX}px`;
+            dragClone.style.top = `${e.clientY}px`;
+
+            // Detectar spot debajo del dedo
+            const elemBelow = document.elementFromPoint(e.clientX, e.clientY);
+            const spotCard = elemBelow ? elemBelow.closest('.spot-card:not(.matched)') : null;
+
+            if (spotCard !== currentHoverSpot) {
+                if (currentHoverSpot) currentHoverSpot.classList.remove('drag-over');
+                currentHoverSpot = spotCard;
+                if (currentHoverSpot) {
+                    currentHoverSpot.classList.add('drag-over');
+                    audioService.playPop();
+                }
+            }
+        }
+    };
+
+    const onPointerUp = (e) => {
+        window.removeEventListener('pointermove', onPointerMove);
+        window.removeEventListener('pointerup', onPointerUp);
+        window.removeEventListener('pointercancel', onPointerUp);
+
+        if (isDragging) {
+            card.classList.remove('is-being-dragged');
+
+            if (currentHoverSpot) {
+                currentHoverSpot.classList.remove('drag-over');
+                const targetGridIndex = parseInt(currentHoverSpot.dataset.gridIndex, 10);
+                const wordToMatch = card.dataset.word;
+
+                // Procesar acierto o error en el motor
+                gameEngine.handleMatch(targetGridIndex, wordToMatch);
+
+                // Eliminar clon flotante
+                if (dragClone) dragClone.remove();
+            } else {
+                // Animación de regreso suave si se suelta en el aire
+                if (dragClone) {
+                    dragClone.classList.add('returning');
+                    const rect = card.getBoundingClientRect();
+                    dragClone.style.left = `${rect.left + rect.width / 2}px`;
+                    dragClone.style.top = `${rect.top + rect.height / 2}px`;
+                    setTimeout(() => {
+                        if (dragClone) dragClone.remove();
+                    }, 260);
+                    audioService.playGentleBounce();
+                }
+            }
+
+            dragClone = null;
+            currentHoverSpot = null;
+            isDragging = false;
+        } else {
+            // Tap-to-Match fallback: El usuario dio un toque rápido sin arrastrar
+            handleTapCard(card, element);
+        }
+    };
+
+    card.addEventListener('pointerdown', onPointerDown);
+}
+
+function handleTapCard(card, element) {
+    if (card.classList.contains('matched')) return;
+
+    if (selectedWordCard === card) {
+        card.classList.remove('selected');
+        selectedWordCard = null;
+        audioService.playPop();
+    } else {
+        if (selectedWordCard) selectedWordCard.classList.remove('selected');
+        selectedWordCard = card;
+        card.classList.add('selected');
+        audioService.playPop();
+        audioService.speakWord(element.word);
+    }
 }
 
 /**
@@ -473,17 +588,103 @@ function verifyMathGate() {
         parentGateChallenge.style.display = 'none';
         parentDashboard.style.display = 'block';
 
-        // Load statistics
-        if (gameEngine && gameEngine.learningManager) {
-            const progress = gameEngine.learningManager.getProgress();
-            const history = gameEngine.learningManager.learningHistory;
-            statWordsSeen.textContent = progress.wordsSeen || 0;
-            statWordsMastered.textContent = progress.wordsMastered || 0;
-            statSessions.textContent = history?.sessions?.length || 0;
-        }
+        // Render comprehensive word-by-word analytics
+        renderWordStatsDashboard(currentStatsFilter);
     } else {
         mathError.style.display = 'block';
         mathAnswerInput.value = '';
         mathAnswerInput.focus();
     }
+}
+
+/**
+ * Render Detailed Word-by-Word Analytics Dashboard
+ * Shows exact attempts, successes, errors, and average attempts per word
+ * @param {string} filter - 'all' or statusClass
+ */
+function renderWordStatsDashboard(filter = 'all') {
+    if (!gameEngine || !gameEngine.learningManager || !wordStatsList) return;
+
+    const lm = gameEngine.learningManager;
+    const progress = lm.getProgress();
+    const allStats = lm.getDetailedWordStats();
+
+    // Summary boxes
+    if (statWordsMastered) statWordsMastered.textContent = progress.wordsMastered || 0;
+    if (statWordsSeen) statWordsSeen.textContent = progress.wordsSeen || 0;
+    if (statAccuracy) statAccuracy.textContent = `${progress.overallAccuracy || 0}%`;
+    if (statAvgAttempts) statAvgAttempts.textContent = progress.avgAttemptsGlobal || '-';
+
+    // Counts for filter pills
+    const countAll = document.getElementById('count-all');
+    const countMastered = document.getElementById('count-mastered');
+    const countProgress = document.getElementById('count-progress');
+    const countPractice = document.getElementById('count-practice');
+    const countNew = document.getElementById('count-new');
+
+    const masteredItems = allStats.filter(s => s.statusClass === 'status-mastered');
+    const progressItems = allStats.filter(s => s.statusClass === 'status-progress');
+    const practiceItems = allStats.filter(s => s.statusClass === 'status-practice');
+    const newItems = allStats.filter(s => s.statusClass === 'status-new');
+
+    if (countAll) countAll.textContent = allStats.length;
+    if (countMastered) countMastered.textContent = masteredItems.length;
+    if (countProgress) countProgress.textContent = progressItems.length;
+    if (countPractice) countPractice.textContent = practiceItems.length;
+    if (countNew) countNew.textContent = newItems.length;
+
+    // Filter items
+    let filtered = allStats;
+    if (filter !== 'all') {
+        filtered = allStats.filter(s => s.statusClass === filter);
+    }
+
+    wordStatsList.innerHTML = '';
+
+    if (filtered.length === 0) {
+        wordStatsList.innerHTML = `
+            <div style="text-align: center; padding: 25px; color: #94A3B8; font-weight: 600;">
+                No hay palabras en esta categoría todavía.
+            </div>
+        `;
+        return;
+    }
+
+    filtered.forEach(stat => {
+        const row = document.createElement('div');
+        row.className = 'word-stat-row';
+
+        const imgSrc = stat.asset || `images/elements/${stat.normKey}.png`;
+
+        row.innerHTML = `
+            <div class="word-info-left">
+                <img src="${imgSrc}" alt="${stat.word}" class="word-stat-thumb" onerror="this.style.display='none'">
+                <div class="word-text-group">
+                    <span class="word-text-name">${stat.word}</span>
+                    <span class="word-text-unit">${stat.unitIcon} ${stat.unitName}</span>
+                </div>
+            </div>
+
+            <div class="word-metrics-center">
+                <div class="metric-pill">
+                    <span class="metric-value success">${stat.successes} ✓</span>
+                    <span class="metric-tag">Aciertos</span>
+                </div>
+                <div class="metric-pill">
+                    <span class="metric-value errors">${stat.errors} ✗</span>
+                    <span class="metric-tag">Errores</span>
+                </div>
+                <div class="metric-pill">
+                    <span class="metric-value attempts">${stat.avgAttempts}</span>
+                    <span class="metric-tag">Intentos/Acierto</span>
+                </div>
+            </div>
+
+            <span class="status-badge ${stat.statusClass}">
+                ${stat.statusIcon} ${stat.status}
+            </span>
+        `;
+
+        wordStatsList.appendChild(row);
+    });
 }

@@ -169,23 +169,43 @@
 
             <!-- Parent Dashboard (Unlocked) -->
             <div id="parent-dashboard" class="parent-dashboard-step" style="display: none;">
-                <h4>📊 Progreso de Emma</h4>
+                <h4>📊 Resumen de Aprendizaje</h4>
                 <div class="dashboard-stats" id="dashboard-stats">
                     <div class="stat-box">
-                        <span class="stat-number" id="stat-words-seen">0</span>
-                        <span class="stat-label">Palabras Vistas</span>
-                    </div>
-                    <div class="stat-box">
                         <span class="stat-number" id="stat-words-mastered">0</span>
-                        <span class="stat-label">Palabras Dominadas</span>
+                        <span class="stat-label">⭐ Dominadas</span>
                     </div>
                     <div class="stat-box">
-                        <span class="stat-number" id="stat-sessions">0</span>
-                        <span class="stat-label">Sesiones</span>
+                        <span class="stat-number" id="stat-words-seen">0</span>
+                        <span class="stat-label">👀 Vistas</span>
+                    </div>
+                    <div class="stat-box">
+                        <span class="stat-number" id="stat-accuracy">0%</span>
+                        <span class="stat-label">🎯 Precisión</span>
+                    </div>
+                    <div class="stat-box">
+                        <span class="stat-number" id="stat-avg-attempts">-</span>
+                        <span class="stat-label">⚡ Intentos/Acierto</span>
                     </div>
                 </div>
 
-                <h4>⚙️ Ajustes</h4>
+                <!-- Word-by-word Detail Section -->
+                <div class="parent-section-header">
+                    <h4>📖 Detalle Palabra por Palabra</h4>
+                    <div class="filter-pills" id="parent-word-filters">
+                        <button class="filter-pill active" data-filter="all">Todas (<span id="count-all">0</span>)</button>
+                        <button class="filter-pill" data-filter="status-mastered">⭐ Dominadas (<span id="count-mastered">0</span>)</button>
+                        <button class="filter-pill" data-filter="status-progress">🚀 En Progreso (<span id="count-progress">0</span>)</button>
+                        <button class="filter-pill" data-filter="status-practice">💡 Por Reforzar (<span id="count-practice">0</span>)</button>
+                        <button class="filter-pill" data-filter="status-new">⏳ Por Ver (<span id="count-new">0</span>)</button>
+                    </div>
+                </div>
+
+                <div class="word-stats-scroll" id="word-stats-list">
+                    <!-- Word stats rendered dynamically -->
+                </div>
+
+                <h4>⚙️ Ajustes de Sesión</h4>
                 <div class="setting-row">
                     <span>Duración de sesión:</span>
                     <select id="session-duration-select" class="custom-select">

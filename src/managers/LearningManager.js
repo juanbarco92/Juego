@@ -97,7 +97,8 @@ class LearningManager {
      * Calculate priority score for a word (0-1, higher = more priority)
      */
     calculateWordPriority(word) {
-        const wordData = this.learningHistory.words[word];
+        const normKey = word.trim().normalize("NFC").toLowerCase();
+        const wordData = this.learningHistory.words[normKey] || this.learningHistory.words[word];
 
         if (!wordData) {
             // New word - high priority
@@ -143,28 +144,53 @@ class LearningManager {
      * @param {boolean} success - Whether the match was correct
      */
     recordAttempt(word, success) {
-        if (!this.learningHistory.words[word]) {
-            this.learningHistory.words[word] = {
+        if (!word) return;
+        const normKey = word.trim().normalize("NFC").toLowerCase();
+
+        if (!this.learningHistory.words[normKey]) {
+            this.learningHistory.words[normKey] = {
+                displayName: word,
                 attempts: 0,
                 successes: 0,
+                errors: 0,
+                streak: 0,
+                bestStreak: 0,
                 firstSeen: Date.now(),
                 lastSeen: Date.now(),
                 mastery: 0
             };
         }
 
-        const wordData = this.learningHistory.words[word];
-        wordData.attempts++;
+        const wordData = this.learningHistory.words[normKey];
+        wordData.displayName = word; // Keep display formatting
+        wordData.attempts = (wordData.attempts || 0) + 1;
+
         if (success) {
-            wordData.successes++;
+            wordData.successes = (wordData.successes || 0) + 1;
+            wordData.streak = (wordData.streak || 0) + 1;
+            if (wordData.streak > (wordData.bestStreak || 0)) {
+                wordData.bestStreak = wordData.streak;
+            }
+        } else {
+            wordData.errors = (wordData.errors || 0) + 1;
+            wordData.streak = 0; // Reset consecutive streak on miss
         }
+
         wordData.lastSeen = Date.now();
 
         // Calculate mastery (weighted recent performance)
         const recentWeight = 0.7;
-        const historicalAccuracy = wordData.successes / wordData.attempts;
+        const historicalAccuracy = wordData.attempts > 0 ? wordData.successes / wordData.attempts : 0;
         const currentResult = success ? 1 : 0;
         wordData.mastery = historicalAccuracy * (1 - recentWeight) + currentResult * recentWeight;
+
+        // Also track in currentSession if active
+        if (this.currentSession) {
+            this.currentSession.totalAttempts = (this.currentSession.totalAttempts || 0) + 1;
+            if (success) {
+                this.currentSession.totalSuccesses = (this.currentSession.totalSuccesses || 0) + 1;
+            }
+        }
 
         this.saveHistory();
     }
@@ -289,7 +315,9 @@ class LearningManager {
      * Get mastery level for a word (0-1)
      */
     getWordMastery(word) {
-        return this.learningHistory.words[word]?.mastery || 0;
+        if (!word) return 0;
+        const normKey = word.trim().normalize("NFC").toLowerCase();
+        return this.learningHistory.words[normKey]?.mastery || this.learningHistory.words[word]?.mastery || 0;
     }
 
     /**
@@ -297,14 +325,115 @@ class LearningManager {
      */
     getProgress() {
         const allWords = this.getAllWordsFromCurriculum();
-        const masteredCount = allWords.filter(w => this.getWordMastery(w) >= 0.8).length;
+        const stats = this.getDetailedWordStats();
+        const masteredCount = stats.filter(s => s.statusClass === 'status-mastered').length;
+        const inProgressCount = stats.filter(s => s.statusClass === 'status-progress').length;
+        const practiceCount = stats.filter(s => s.statusClass === 'status-practice').length;
+        
+        let totalAttemptsAll = 0;
+        let totalSuccessesAll = 0;
+        stats.forEach(s => {
+            totalAttemptsAll += s.attempts;
+            totalSuccessesAll += s.successes;
+        });
+
+        const overallAccuracy = totalAttemptsAll > 0 
+            ? Math.round((totalSuccessesAll / totalAttemptsAll) * 100) 
+            : 0;
+
+        const avgAttemptsGlobal = totalSuccessesAll > 0 
+            ? (totalAttemptsAll / totalSuccessesAll).toFixed(1) 
+            : '-';
 
         return {
             totalWords: allWords.length,
-            wordsSeen: Object.keys(this.learningHistory.words).length,
+            wordsSeen: stats.filter(s => s.attempts > 0).length,
             wordsMastered: masteredCount,
-            overallProgress: masteredCount / allWords.length
+            wordsInProgress: inProgressCount,
+            wordsNeedPractice: practiceCount,
+            overallProgress: allWords.length > 0 ? masteredCount / allWords.length : 0,
+            overallAccuracy,
+            avgAttemptsGlobal,
+            totalAttempts: totalAttemptsAll,
+            totalSuccesses: totalSuccessesAll
         };
+    }
+
+    /**
+     * Get detailed word-by-word statistics for Parental Dashboard
+     * @returns {Array<Object>}
+     */
+    getDetailedWordStats() {
+        const stats = [];
+        if (!this.curriculum.units) return stats;
+
+        this.curriculum.units.forEach(unit => {
+            unit.words.forEach(word => {
+                const normKey = word.trim().normalize("NFC").toLowerCase();
+                const wordData = this.learningHistory.words[normKey] || this.learningHistory.words[word] || {
+                    attempts: 0,
+                    successes: 0,
+                    errors: 0,
+                    streak: 0,
+                    bestStreak: 0,
+                    lastSeen: null,
+                    mastery: 0
+                };
+
+                const attempts = wordData.attempts || 0;
+                const successes = wordData.successes || 0;
+                const errors = wordData.errors !== undefined ? wordData.errors : Math.max(0, attempts - successes);
+                const accuracy = attempts > 0 ? Math.round((successes / attempts) * 100) : 0;
+                const avgAttempts = successes > 0 
+                    ? (attempts / successes).toFixed(1) 
+                    : (attempts > 0 ? `${attempts}+` : '-');
+
+                // Determine pedagogical mastery status
+                let status = 'Por ver';
+                let statusClass = 'status-new';
+                let statusIcon = '⏳';
+
+                if (attempts === 0) {
+                    status = 'Por ver';
+                    statusClass = 'status-new';
+                    statusIcon = '⏳';
+                } else if (successes >= 3 && accuracy >= 75) {
+                    status = 'Dominada';
+                    statusClass = 'status-mastered';
+                    statusIcon = '⭐';
+                } else if (successes >= 1 && accuracy >= 50) {
+                    status = 'En progreso';
+                    statusClass = 'status-progress';
+                    statusIcon = '🚀';
+                } else {
+                    status = 'Por reforzar';
+                    statusClass = 'status-practice';
+                    statusIcon = '💡';
+                }
+
+                stats.push({
+                    word,
+                    normKey,
+                    unitId: unit.id,
+                    unitName: unit.name,
+                    unitIcon: unit.icon,
+                    attempts,
+                    successes,
+                    errors,
+                    accuracy,
+                    avgAttempts,
+                    streak: wordData.streak || 0,
+                    bestStreak: wordData.bestStreak || 0,
+                    status,
+                    statusClass,
+                    statusIcon,
+                    lastSeen: wordData.lastSeen,
+                    asset: this.getImageForWord(word)
+                });
+            });
+        });
+
+        return stats;
     }
 
     /**

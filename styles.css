@@ -474,6 +474,31 @@ html, body {
     border: 3px solid rgba(255, 255, 255, 0.9);
     position: relative;
     user-select: none;
+    -webkit-user-select: none;
+    touch-action: none; /* Indispensable para iPad: desactiva gestos nativos de scroll al tocar la tarjeta */
+}
+
+.word-card.is-being-dragged {
+    opacity: 0.28 !important;
+    transform: scale(0.92) !important;
+}
+
+/* Clon flotante que sigue el dedo en iPad / cursor */
+.floating-drag-clone {
+    position: fixed !important;
+    pointer-events: none !important;
+    z-index: 99999 !important;
+    margin: 0 !important;
+    transform: translate(-50%, -50%) scale(1.15) !important;
+    box-shadow: 0 22px 45px rgba(0, 0, 0, 0.38) !important;
+    cursor: grabbing !important;
+    will-change: left, top, transform;
+}
+
+.floating-drag-clone.returning {
+    transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+    transform: translate(-50%, -50%) scale(0.8) !important;
+    opacity: 0 !important;
 }
 
 /* Colores de gominola alegre */
@@ -656,20 +681,45 @@ html, body {
 
 .parent-card {
     text-align: left;
-    max-width: 520px;
+    max-width: 660px;
+    width: 94%;
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    padding: 24px;
+}
+
+.parent-dashboard-step {
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    max-height: 75vh;
+    padding-right: 6px;
+}
+
+/* Scrollbar personalizado suave */
+.parent-dashboard-step::-webkit-scrollbar,
+.word-stats-scroll::-webkit-scrollbar {
+    width: 6px;
+}
+.parent-dashboard-step::-webkit-scrollbar-thumb,
+.word-stats-scroll::-webkit-scrollbar-thumb {
+    background: #CBD5E1;
+    border-radius: 10px;
 }
 
 .parent-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-bottom: 20px;
+    margin-bottom: 16px;
     border-bottom: 2px solid #F1F5F9;
-    padding-bottom: 12px;
+    padding-bottom: 10px;
 }
 
 .parent-header h3 {
-    font-size: 1.6rem;
+    font-size: 1.5rem;
     color: #0F172A;
 }
 
@@ -724,29 +774,198 @@ html, body {
 
 .dashboard-stats {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 12px;
-    margin-bottom: 20px;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    margin-bottom: 18px;
 }
 
 .stat-box {
     background: #F8FAFC;
+    border: 2px solid #F1F5F9;
     border-radius: 16px;
-    padding: 14px;
+    padding: 10px 8px;
     text-align: center;
 }
 
 .stat-number {
     display: block;
-    font-size: 1.8rem;
+    font-size: 1.6rem;
     font-weight: 700;
     color: #FB8500;
 }
 
 .stat-label {
-    font-size: 0.85rem;
+    font-size: 0.78rem;
     color: #64748B;
     font-weight: 600;
+}
+
+/* Sección de detalle por palabra */
+.parent-section-header {
+    margin-top: 6px;
+    margin-bottom: 10px;
+}
+
+.parent-section-header h4 {
+    font-size: 1.15rem;
+    color: #1E293B;
+    margin-bottom: 8px;
+}
+
+.filter-pills {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-bottom: 10px;
+}
+
+.filter-pill {
+    background: #FFF;
+    border: 2px solid #E2E8F0;
+    border-radius: var(--radius-pill);
+    padding: 4px 12px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    font-family: var(--font-main);
+    color: #64748B;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.filter-pill:hover {
+    background: #F8FAFC;
+    border-color: #CBD5E1;
+}
+
+.filter-pill.active {
+    background: #FB8500;
+    color: #FFF;
+    border-color: #FB8500;
+    box-shadow: 0 3px 8px rgba(251, 133, 0, 0.3);
+}
+
+.word-stats-scroll {
+    max-height: 240px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding-right: 4px;
+    margin-bottom: 18px;
+}
+
+/* Fila de estadística individual por palabra */
+.word-stat-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #FFFFFF;
+    border: 2px solid #F1F5F9;
+    border-radius: 16px;
+    padding: 8px 14px;
+    gap: 12px;
+    transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.word-stat-row:hover {
+    border-color: #CBD5E1;
+    transform: translateX(2px);
+}
+
+.word-info-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 140px;
+}
+
+.word-stat-thumb {
+    width: 38px;
+    height: 38px;
+    object-fit: contain;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
+}
+
+.word-text-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.word-text-name {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: #0F172A;
+}
+
+.word-text-unit {
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: #94A3B8;
+}
+
+/* Métricas intermedias */
+.word-metrics-center {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.metric-pill {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    font-size: 0.75rem;
+}
+
+.metric-value {
+    font-weight: 700;
+    font-size: 0.95rem;
+}
+
+.metric-value.success { color: #10B981; }
+.metric-value.errors { color: #EF4444; }
+.metric-value.attempts { color: #3B82F6; }
+
+.metric-tag {
+    font-size: 0.68rem;
+    color: #64748B;
+    font-weight: 600;
+}
+
+/* Badges de estado */
+.status-badge {
+    padding: 4px 12px;
+    border-radius: var(--radius-pill);
+    font-size: 0.78rem;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    white-space: nowrap;
+}
+
+.status-badge.status-mastered {
+    background: #FEF3C7;
+    color: #B45309;
+    border: 1.5px solid #FDE047;
+}
+
+.status-badge.status-progress {
+    background: #E0F2FE;
+    color: #0369A1;
+    border: 1.5px solid #BAE6FD;
+}
+
+.status-badge.status-practice {
+    background: #FEE2E2;
+    color: #B91C1C;
+    border: 1.5px solid #FECACA;
+}
+
+.status-badge.status-new {
+    background: #F1F5F9;
+    color: #64748B;
+    border: 1.5px solid #E2E8F0;
 }
 
 .setting-row {
