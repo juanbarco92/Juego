@@ -21,12 +21,16 @@ class GameEngine {
         this.currentMatches = 0;
         this.totalMatches = 0;
         this.levelsCompletedThisSession = 0;
+        this.levelPhase = 'sound'; // 'sound' (Fase 1 con sonido) | 'silent' (Fase 2 sin sonido)
+        this.isRestarting = false; // Candado para evitar carreras durante el reinicio por error
 
         // UI callbacks
         this.callbacks = {
             onLevelReady: null,
             onMatchSuccess: null,
             onMatchError: null,
+            onPhaseComplete: null,
+            onLevelRestart: null,
             onLevelComplete: null,
             onSessionUpdate: null,
             onSessionEnd: null
@@ -93,7 +97,9 @@ class GameEngine {
             themeClass: themeClass || 'theme-family'
         };
 
-        this.renderLevel(levelData);
+        this.levelPhase = 'sound';
+        this.isRestarting = false;
+        this.renderLevel(levelData, 'sound');
     }
 
     /**
@@ -112,31 +118,42 @@ class GameEngine {
         console.log('🎯 Difficulty:', levelData.difficulty, 'active objects');
         console.log('🎨 Theme:', levelData.theme);
 
-        // Render level directly (no AI generation needed)
-        this.renderLevel(levelData);
+        this.levelPhase = 'sound';
+        this.isRestarting = false;
+        this.renderLevel(levelData, 'sound');
     }
 
     /**
      * Render a level to the game area
+     * @param {Object} levelData - Data for the level (elements, theme, etc.)
+     * @param {string} phase - 'sound' (Fase 1 con voz) or 'silent' (Fase 2 sin voz)
+     * @param {boolean} isRestart - True if restarted due to an error
      */
-    renderLevel(levelData) {
+    renderLevel(levelData, phase = 'sound', isRestart = false) {
+        this.levelPhase = phase;
+        this.isRestarting = false;
+
         // Filter out null slots to get active words
         const activeElements = levelData.elements.filter(el => el !== null);
 
         this.currentLevel = {
             data: levelData,
             words: activeElements.map(el => el.word),
-            startTime: Date.now()
+            startTime: (isRestart && this.currentLevel) ? this.currentLevel.startTime : Date.now()
         };
 
         this.currentMatches = 0;
         this.totalMatches = activeElements.length; // Only count active elements
 
         if (this.callbacks.onLevelReady) {
-            this.callbacks.onLevelReady(levelData);
+            this.callbacks.onLevelReady({
+                ...levelData,
+                phase: this.levelPhase,
+                isRestart: isRestart
+            });
         }
 
-        console.log('✅ Level rendered:', this.totalMatches, 'words to match');
+        console.log(`✅ Level rendered [Fase: ${this.levelPhase}, Reinicio: ${isRestart}]:`, this.totalMatches, 'words to match');
     }
 
     /**
@@ -145,6 +162,8 @@ class GameEngine {
      * @param {string} targetWord - The word player is looking for
      */
     handleMatch(selectedGridIndex, targetWord) {
+        if (this.isRestarting) return false;
+
         // Find the element at the selected grid index
         const selectedElement = this.currentLevel.data.elements
             .find(el => el.gridIndex === selectedGridIndex);
@@ -169,7 +188,7 @@ class GameEngine {
      * Handle correct match
      */
     handleCorrectMatch(word, elementId) {
-        console.log('✅ Correct match:', word);
+        console.log(`✅ Correct match: ${word} [Fase: ${this.levelPhase}]`);
 
         // Update learning data
         this.learningManager.recordAttempt(word, true);
@@ -179,31 +198,93 @@ class GameEngine {
 
         // Callback to UI
         if (this.callbacks.onMatchSuccess) {
-            this.callbacks.onMatchSuccess(word, elementId);
+            this.callbacks.onMatchSuccess(word, elementId, this.levelPhase);
         }
 
-        // Check if level complete
+        // Check if all words in current phase matched
         if (this.currentMatches >= this.totalMatches) {
-            setTimeout(() => {
-                this.handleLevelComplete();
-            }, 1000);
+            if (this.levelPhase === 'sound') {
+                // Completed Phase 1 (con sonido) -> transition to Phase 2 (sin sonido, mismo nivel)
+                setTimeout(() => {
+                    this.transitionToSilentPhase();
+                }, 900);
+            } else {
+                // Completed Phase 2 (sin sonido) -> Full level completion!
+                setTimeout(() => {
+                    this.handleLevelComplete();
+                }, 900);
+            }
         }
     }
 
     /**
-     * Handle wrong match
+     * Transition to Phase 2 (Silent reading of the same word set)
+     */
+    transitionToSilentPhase() {
+        console.log('🤫 Transitioning to silent phase for the same level...');
+        this.levelPhase = 'silent';
+
+        if (this.callbacks.onPhaseComplete) {
+            this.callbacks.onPhaseComplete({
+                previousPhase: 'sound',
+                newPhase: 'silent',
+                levelData: this.currentLevel.data
+            });
+        }
+
+        // Wait 1.4s for celebration banner, then re-render in silent mode
+        setTimeout(() => {
+            if (this.currentLevel && this.currentLevel.data) {
+                this.renderLevel(this.currentLevel.data, 'silent', false);
+            }
+        }, 1400);
+    }
+
+    /**
+     * Handle wrong match - Reinforce learning by restarting the level
      * @param {string} draggedWord - The word that was dragged (to record the attempt)
      */
     handleWrongMatch(draggedWord) {
-        console.log('❌ Wrong match:', draggedWord);
+        console.log(`❌ Wrong match: ${draggedWord} [Fase: ${this.levelPhase}] -> Reiniciando nivel para reforzar`);
+
+        // Prevent rapid repeated drops during restart cooldown
+        this.isRestarting = true;
 
         // Record failed attempt for the word that was dragged
         this.learningManager.recordAttempt(draggedWord, false);
 
-        // Callback to UI
+        // Callback to UI for gentle visual/audio cues
         if (this.callbacks.onMatchError) {
-            this.callbacks.onMatchError(draggedWord);
+            this.callbacks.onMatchError(draggedWord, this.levelPhase);
         }
+
+        // Restart current level phase after 1.1s so Emma understands the feedback
+        setTimeout(() => {
+            this.restartCurrentLevel(draggedWord);
+        }, 1100);
+    }
+
+    /**
+     * Restart the current level phase to reinforce words
+     */
+    restartCurrentLevel(failedWord) {
+        if (!this.currentLevel || !this.currentLevel.data) {
+            this.isRestarting = false;
+            return;
+        }
+
+        console.log(`🔄 Restarting level in phase: ${this.levelPhase}`);
+
+        if (this.callbacks.onLevelRestart) {
+            this.callbacks.onLevelRestart({
+                phase: this.levelPhase,
+                failedWord: failedWord,
+                levelData: this.currentLevel.data
+            });
+        }
+
+        // Re-render level in current phase with isRestart = true
+        this.renderLevel(this.currentLevel.data, this.levelPhase, true);
     }
 
     /**

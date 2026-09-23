@@ -18,16 +18,16 @@
     <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Quicksand:wght@600;700&display=swap" rel="stylesheet">
 
     <!-- Styles -->
-    <link rel="stylesheet" href="styles.css?v=2.6">
+    <link rel="stylesheet" href="styles.css?v=2.7">
 
     <!-- Core Dependencies -->
-    <script src="src/data/curriculum.js?v=2.6"></script>
-    <script src="src/data/assets.js?v=2.6"></script>
-    <script src="src/services/AudioService.js?v=2.6"></script>
-    <script src="src/utils/StorageManager.js?v=2.6"></script>
-    <script src="src/managers/LearningManager.js?v=2.6"></script>
-    <script src="src/managers/SessionController.js?v=2.6"></script>
-    <script src="src/core/GameEngine.js?v=2.6"></script>
+    <script src="src/data/curriculum.js?v=2.7"></script>
+    <script src="src/data/assets.js?v=2.7"></script>
+    <script src="src/services/AudioService.js?v=2.7"></script>
+    <script src="src/utils/StorageManager.js?v=2.7"></script>
+    <script src="src/managers/LearningManager.js?v=2.7"></script>
+    <script src="src/managers/SessionController.js?v=2.7"></script>
+    <script src="src/core/GameEngine.js?v=2.7"></script>
 </head>
 
 <body>
@@ -53,7 +53,7 @@
             <div class="brand">
                 <span class="brand-avatar">👧</span>
                 <span class="brand-name">Emma Aprende</span>
-                <span class="build-badge">v2.6</span>
+                <span class="build-badge">v2.7</span>
             </div>
 
             <!-- The Sky Progress Metaphor (El Cielo de Emma) -->
@@ -97,27 +97,43 @@
 
         <!-- Dynamic Game Stage -->
         <main class="game-stage">
-            <!-- Theme Header / World Banner -->
+            <!-- Theme Header / World Banner con Indicador de Fase -->
             <div class="theme-banner">
                 <span class="theme-title" id="theme-title">🌟 ¡A descubrir palabras!</span>
+                <span class="phase-badge phase-sound" id="phase-badge">🗣️ Con Sonido</span>
             </div>
 
-            <!-- Spots / Image Grid (Burbujas mágicas donde van las palabras) -->
-            <section class="spots-grid" id="spots-grid">
-                <!-- Image spots will be rendered dynamically -->
-            </section>
-
-            <!-- Word Bank (Tarjetas táctiles de palabras) -->
+            <!-- Word Bank (Tarjetas táctiles de palabras) - ARRIBA para que no colisione con el gesto del iPad -->
             <section class="word-bank-section">
                 <div class="word-bank" id="word-bank">
                     <!-- Word cards will be rendered dynamically -->
                 </div>
+            </section>
+
+            <!-- Spots / Image Grid (Burbujas mágicas donde van las palabras) - ABAJO -->
+            <section class="spots-grid" id="spots-grid">
+                <!-- Image spots will be rendered dynamically -->
             </section>
         </main>
     </div>
 
     <!-- Celebration Particles Container -->
     <div class="celebration-particles" id="celebration-particles"></div>
+
+    <!-- Phase Transition Modal / Overlay (Con Sonido -> Sin Sonido) -->
+    <div class="phase-transition-overlay" id="phase-transition-overlay">
+        <div class="phase-transition-card">
+            <div class="phase-transition-icon" id="phase-transition-icon">🤫✨</div>
+            <h2 class="phase-transition-title" id="phase-transition-title">¡Muy bien! Ahora solitas</h2>
+            <p class="phase-transition-desc" id="phase-transition-desc">¡Leamos las mismas palabras sin ayuda de sonido!</p>
+        </div>
+    </div>
+
+    <!-- Restart Toast (Reinicio cariñoso al fallar palabra) -->
+    <div class="restart-toast" id="restart-toast">
+        <span class="restart-toast-icon">🔄</span>
+        <span class="restart-toast-text" id="restart-toast-text">¡Intentemos este nivel de nuevo! Tú puedes 💪</span>
+    </div>
 
     <!-- Welcome Modal (Toca para jugar) -->
     <div class="modal-backdrop active" id="welcome-modal">
@@ -383,7 +399,7 @@
     </div>
 
     <!-- UI Controller Script -->
-    <script src="script.js?v=2.6"></script>
+    <script src="script.js?v=2.7"></script>
 </body>
 
 </html>

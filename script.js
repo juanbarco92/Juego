@@ -24,6 +24,15 @@ const sunMarker = document.getElementById('sun-marker');
 const starCount = document.getElementById('star-count');
 const audioToggleBtn = document.getElementById('audio-toggle-btn');
 const parentGateBtn = document.getElementById('parent-gate-btn');
+const phaseBadge = document.getElementById('phase-badge');
+
+// Phase & Restart Alerts
+const phaseTransitionOverlay = document.getElementById('phase-transition-overlay');
+const phaseTransitionTitle = document.getElementById('phase-transition-title');
+const phaseTransitionDesc = document.getElementById('phase-transition-desc');
+const phaseTransitionIcon = document.getElementById('phase-transition-icon');
+const restartToast = document.getElementById('restart-toast');
+const restartToastText = document.getElementById('restart-toast-text');
 
 // Modals
 const welcomeModal = document.getElementById('welcome-modal');
@@ -165,6 +174,8 @@ function setupGameCallbacks() {
     gameEngine.on('levelReady', onLevelReady);
     gameEngine.on('matchSuccess', onMatchSuccess);
     gameEngine.on('matchError', onMatchError);
+    gameEngine.on('phaseComplete', onPhaseComplete);
+    gameEngine.on('levelRestart', onLevelRestart);
     gameEngine.on('levelComplete', onLevelComplete);
     gameEngine.on('sessionUpdate', onSessionUpdate);
     gameEngine.on('sessionEnd', onSessionEnd);
@@ -371,6 +382,17 @@ function onLevelReady(levelData) {
     spotsGrid.innerHTML = '';
     wordBank.innerHTML = '';
 
+    // Update Phase Badge UI
+    if (phaseBadge) {
+        if (levelData.phase === 'silent') {
+            phaseBadge.textContent = '🤫 Sin Sonido - ¡Leemos Solitas!';
+            phaseBadge.className = 'phase-badge phase-silent';
+        } else {
+            phaseBadge.textContent = '🗣️ Con Sonido';
+            phaseBadge.className = 'phase-badge phase-sound';
+        }
+    }
+
     // Update Storybook Theme Scenery
     const skyBg = document.getElementById('sky-background');
     if (skyBg && levelData.themeClass) {
@@ -388,13 +410,13 @@ function onLevelReady(levelData) {
         audioService.preloadWords(elements.map(e => e.word));
     }
 
-    // 1. Render Target Image Spots
+    // 1. Render Target Image Spots (ABAJO)
     elements.forEach((element) => {
         const spotCard = createSpotCard(element);
         spotsGrid.appendChild(spotCard);
     });
 
-    // 2. Render Word Cards with playful candy colors
+    // 2. Render Word Cards with playful candy colors (ARRIBA)
     const colors = ['card-coral', 'card-teal', 'card-amber', 'card-purple'];
     const shuffledElements = [...elements].sort(() => Math.random() - 0.5);
     shuffledElements.forEach((element, idx) => {
@@ -451,9 +473,11 @@ function createSpotCard(element) {
                 selectedWordCard = null;
             }
         } else {
-            // Tapping image directly speaks its name for gentle prompt
+            // Tapping image directly speaks its name for gentle prompt SOLO en fase con sonido
             audioService.playPop();
-            audioService.speakWord(element.word);
+            if (gameEngine && gameEngine.levelPhase === 'sound') {
+                audioService.speakWord(element.word);
+            }
         }
     });
 
@@ -516,9 +540,11 @@ function setupCardDragAndDrop(card, element) {
         startY = e.clientY;
         isDragging = false;
 
-        // Pronunciar palabra al tocarla
+        // Pronunciar palabra al tocarla SOLO en fase con sonido
         audioService.playPop();
-        audioService.speakWord(element.word);
+        if (gameEngine && gameEngine.levelPhase === 'sound') {
+            audioService.speakWord(element.word);
+        }
 
         window.addEventListener('pointermove', onPointerMove, { passive: false });
         window.addEventListener('pointerup', onPointerUp);
@@ -628,19 +654,23 @@ function handleTapCard(card, element) {
         selectedWordCard = card;
         card.classList.add('selected');
         audioService.playPop();
-        audioService.speakWord(element.word);
+        if (gameEngine && gameEngine.levelPhase === 'sound') {
+            audioService.speakWord(element.word);
+        }
     }
 }
 
 /**
  * Callback: Correct Match
  */
-function onMatchSuccess(word, gridIndex) {
-    console.log('✅ Acierto:', word);
+function onMatchSuccess(word, gridIndex, phase = 'sound') {
+    console.log(`✅ Acierto: ${word} [Fase: ${phase}]`);
 
     // Audio Celebration
     audioService.playSuccess();
-    audioService.speakPraise(word);
+    if (phase === 'sound') {
+        audioService.speakPraise(word);
+    }
 
     // Update Spot Card UI
     const spot = document.querySelector(`.spot-card[data-grid-index="${gridIndex}"]`);
@@ -662,10 +692,10 @@ function onMatchSuccess(word, gridIndex) {
 }
 
 /**
- * Callback: Wrong Match
+ * Callback: Wrong Match (Acompañado de reinicio suave para reforzar)
  */
-function onMatchError(draggedWord) {
-    console.log('❌ Intento fallido para:', draggedWord);
+function onMatchError(draggedWord, phase = 'sound') {
+    console.log(`❌ Intento fallido para: ${draggedWord} [Fase: ${phase}]`);
 
     audioService.playGentleBounce();
 
@@ -675,6 +705,42 @@ function onMatchError(draggedWord) {
         s.classList.add('wrong');
         setTimeout(() => s.classList.remove('wrong'), 500);
     });
+}
+
+/**
+ * Callback: Phase Complete (Transición de Fase 1 con sonido a Fase 2 sin sonido)
+ */
+function onPhaseComplete(data) {
+    console.log('✨ Transición de fase completada:', data);
+
+    audioService.playSuccess();
+
+    if (phaseTransitionOverlay) {
+        if (phaseTransitionTitle) phaseTransitionTitle.textContent = '¡Muy bien, Emma! 🌟';
+        if (phaseTransitionDesc) phaseTransitionDesc.textContent = '¡Ahora leemos las mismas palabras solitas, sin ayuda de sonido! 🤫✨';
+        phaseTransitionOverlay.classList.add('active');
+
+        setTimeout(() => {
+            phaseTransitionOverlay.classList.remove('active');
+        }, 1350);
+    }
+}
+
+/**
+ * Callback: Level Restart on Error (Reforzar aprendizaje reiniciando el nivel)
+ */
+function onLevelRestart(data) {
+    console.log('🔄 Reiniciando nivel por error para reforzar:', data);
+
+    if (restartToast) {
+        if (restartToastText) {
+            restartToastText.textContent = '¡Ups! Intentemos este nivel de nuevo 💪✨';
+        }
+        restartToast.classList.add('active');
+        setTimeout(() => {
+            restartToast.classList.remove('active');
+        }, 1700);
+    }
 }
 
 /**
@@ -1282,7 +1348,7 @@ if ('serviceWorker' in navigator) {
     });
 
     window.addEventListener('load', () => {
-        navigator.serviceWorker.register('sw.js?v=2.6').then((reg) => {
+        navigator.serviceWorker.register('sw.js?v=2.7').then((reg) => {
             reg.update();
             reg.addEventListener('updatefound', () => {
                 const newWorker = reg.installing;
