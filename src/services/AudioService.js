@@ -18,12 +18,16 @@ class AudioService {
             '¡Bravo!'
         ];
 
+        this.audioPool = new Map();
+        this.currentAudio = null;
+
         this.initAudioContext();
         this.initSpeech();
+        this.preloadPraises();
     }
 
     /**
-     * Initialize Web Audio API for sound effects
+     * Initialize Web Audio API for sound effects and unlock iOS media pipeline
      */
     initAudioContext() {
         const AudioContextClass = window.AudioContext || window.webkitAudioContext;
@@ -36,11 +40,56 @@ class AudioService {
             if (this.audioCtx && this.audioCtx.state === 'suspended') {
                 this.audioCtx.resume();
             }
+            // Unlock HTML5 Audio element pipeline on iOS Safari
+            try {
+                const dummy = new Audio();
+                dummy.src = 'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA=';
+                dummy.play().catch(() => {});
+            } catch (e) {}
+
             window.removeEventListener('touchstart', unlockAudio);
             window.removeEventListener('click', unlockAudio);
         };
         window.addEventListener('touchstart', unlockAudio, { passive: true });
         window.addEventListener('click', unlockAudio, { passive: true });
+    }
+
+    /**
+     * Preload praise audio clips into memory
+     */
+    preloadPraises() {
+        for (let i = 1; i <= 8; i++) {
+            const key = `praise_${i}`;
+            if (!this.audioPool.has(key)) {
+                try {
+                    const audio = new Audio(`audio/praise/praise_${i}.mp3`);
+                    audio.preload = 'auto';
+                    audio.load();
+                    this.audioPool.set(key, audio);
+                } catch (e) {}
+            }
+        }
+    }
+
+    /**
+     * Preload word audio clips into memory for instant zero-latency playback
+     * @param {string[]} words 
+     */
+    preloadWords(words) {
+        if (!words || !Array.isArray(words)) return;
+        words.forEach(word => {
+            if (!word) return;
+            const normalized = word.toLowerCase().trim()
+                .normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, "_");
+            if (!this.audioPool.has(normalized)) {
+                try {
+                    const audio = new Audio(`audio/words/${normalized}.mp3`);
+                    audio.preload = 'auto';
+                    audio.load();
+                    this.audioPool.set(normalized, audio);
+                } catch (e) {}
+            }
+        });
     }
 
     /**
@@ -76,7 +125,7 @@ class AudioService {
     }
 
     /**
-     * Speak a word clearly and warmly using studio-quality MP3 audio with synthesis fallback
+     * Speak a word clearly and instantly using in-memory preloaded audio
      * @param {string} word 
      */
     speakWord(word) {
@@ -85,7 +134,7 @@ class AudioService {
         const normalized = word.toLowerCase().trim()
             .normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, "_");
 
-        // Stop any currently playing audio
+        // Stop any currently playing speech audio
         if (this.currentAudio) {
             try {
                 this.currentAudio.pause();
@@ -93,10 +142,16 @@ class AudioService {
             } catch (e) {}
         }
 
-        // Try playing pre-rendered studio neural MP3
-        const audioPath = `audio/words/${normalized}.mp3`;
-        const audio = new Audio(audioPath);
+        // Get from in-memory preloaded pool or create
+        let audio = this.audioPool.get(normalized);
+        if (!audio) {
+            audio = new Audio(`audio/words/${normalized}.mp3`);
+            audio.preload = 'auto';
+            this.audioPool.set(normalized, audio);
+        }
+
         this.currentAudio = audio;
+        audio.currentTime = 0;
 
         const playPromise = audio.play();
         if (playPromise !== undefined) {
@@ -122,7 +177,7 @@ class AudioService {
     }
 
     /**
-     * Speak congratulatory praise using neural MP3
+     * Speak congratulatory praise using neural MP3 instantly
      * @param {string} word - The matched word
      */
     speakPraise(word) {
@@ -138,22 +193,26 @@ class AudioService {
 
         // Random praise audio (praise_1 to praise_8)
         const praiseNum = Math.floor(Math.random() * 8) + 1;
-        const praisePath = `audio/praise/praise_${praiseNum}.mp3`;
-        const audio = new Audio(praisePath);
+        const key = `praise_${praiseNum}`;
+        let audio = this.audioPool.get(key);
+        if (!audio) {
+            audio = new Audio(`audio/praise/${key}.mp3`);
+            audio.preload = 'auto';
+            this.audioPool.set(key, audio);
+        }
+
         this.currentAudio = audio;
+        audio.currentTime = 0;
 
         audio.onended = () => {
             if (word) {
-                setTimeout(() => {
-                    this.speakWord(word);
-                }, 200);
+                this.speakWord(word);
             }
         };
 
         const playPromise = audio.play();
         if (playPromise !== undefined) {
             playPromise.catch(() => {
-                // Fallback to direct word pronunciation
                 this.speakWord(word);
             });
         }

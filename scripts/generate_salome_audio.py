@@ -72,6 +72,14 @@ WORDS = [
     ("uvas", "uvas"),
     ("vestir", "vestir"),
     ("yogur", "yogur"),
+    ("elefante", "elefante"),
+    ("leon", "león"),
+    ("mono", "mono"),
+    ("pato", "pato"),
+    ("pez", "pez"),
+    ("mariposa", "mariposa"),
+    ("sandia", "sandía"),
+    ("arcoiris", "arcoíris"),
 ]
 
 PRAISES = [

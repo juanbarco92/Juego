@@ -35,6 +35,10 @@ const sessionStatsSummary = document.getElementById('session-stats-summary');
 const parentModal = document.getElementById('parent-modal');
 const closeParentBtn = document.getElementById('close-parent-btn');
 
+// Home & Menu Elements
+const homeMenuBtn = document.getElementById('home-menu-btn');
+const welcomeParentsBtn = document.getElementById('welcome-parents-btn');
+
 // Magic Chest Elements
 const magicChestNavBtn = document.getElementById('magic-chest-nav-btn');
 const startChestBtn = document.getElementById('start-chest-btn');
@@ -168,6 +172,26 @@ function setupUIEventListeners() {
             console.error('❌ Error al iniciar sesión:', err);
         }
     });
+
+    // Home & Main Menu Return
+    if (homeMenuBtn) {
+        homeMenuBtn.addEventListener('click', () => {
+            if (audioService) audioService.playPop();
+            if (magicChestModal) magicChestModal.classList.remove('active');
+            if (parentModal) parentModal.classList.remove('active');
+            if (restModal) restModal.classList.remove('active');
+            if (welcomeModal) {
+                welcomeModal.classList.add('active');
+                welcomeModal.style.display = 'flex';
+            }
+        });
+    }
+
+    if (welcomeParentsBtn) {
+        welcomeParentsBtn.addEventListener('click', () => {
+            openParentGate();
+        });
+    }
 
     // Magic Chest Launchers & Controls
     if (startChestBtn) {
@@ -308,9 +332,12 @@ function onLevelReady(levelData) {
     // Update Theme Title with cute storybook styling
     if (levelData.theme) {
         themeTitle.textContent = `${levelData.theme}`;
-    }
-
     const elements = levelData.elements.filter(Boolean);
+
+    // Preload words in memory for instantaneous 0ms audio playback
+    if (audioService && elements.length > 0) {
+        audioService.preloadWords(elements.map(e => e.word));
+    }
 
     // 1. Render Target Image Spots
     elements.forEach((element) => {
@@ -820,6 +847,11 @@ function openMagicChest(targetUnit = null) {
 
     chestWords = currentChestUnit.words ? [...currentChestUnit.words] : ["Mamá", "Papá", "Emma"];
     currentChestIndex = 0;
+
+    // Preload words in memory for instantaneous 0ms audio playback
+    if (audioService && chestWords.length > 0) {
+        audioService.preloadWords(chestWords);
+    }
 
     magicChestModal.classList.add('active');
     renderChestCard();

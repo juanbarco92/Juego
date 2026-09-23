@@ -368,12 +368,12 @@ const AssetProvider = (function () {
 
     // Set of rich illustrated PNGs available in images/elements/
     const availablePngs = new Set([
-        'amigos', 'avion', 'barco', 'barrer', 'bebe', 'bicicleta', 'bote', 'brocoli', 'calabaza',
-        'cansado', 'caracol', 'carro', 'cebolla', 'cepillar', 'comer', 'conejo', 'dormir', 'emma',
+        'amigos', 'arcoiris', 'avion', 'barco', 'barrer', 'bebe', 'bicicleta', 'bote', 'brocoli', 'calabaza',
+        'cansado', 'caracol', 'carro', 'cebolla', 'cepillar', 'comer', 'conejo', 'dormir', 'elefante', 'emma',
         'empujar', 'escuela', 'flor', 'fresa', 'galleta', 'gallo', 'gato', 'globo', 'guantes',
-        'helado', 'huevo', 'jabon', 'jardin', 'jirafa', 'lampara', 'leche', 'libros', 'lobo',
-        'mama', 'manzana', 'medico', 'mesa', 'negro', 'orejas', 'oso', 'pan', 'papa', 'pelota',
-        'perro', 'platano', 'pollito', 'robot', 'sofa', 'sol', 'tambor', 'televisor', 'tigre',
+        'helado', 'huevo', 'jabon', 'jardin', 'jirafa', 'lampara', 'leche', 'leon', 'libros', 'lobo',
+        'mama', 'manzana', 'mariposa', 'medico', 'mesa', 'mono', 'negro', 'orejas', 'oso', 'pan', 'papa', 'pato', 'pelota',
+        'perro', 'pez', 'platano', 'pollito', 'robot', 'sandia', 'sofa', 'sol', 'tambor', 'televisor', 'tetero', 'tigre',
         'tren', 'uvas', 'vestir', 'yogur'
     ]);
 

@@ -1075,52 +1075,110 @@ html, body {
     opacity: 0.95;
 }
 
+.home-btn {
+    background: linear-gradient(135deg, #06D6A0, #05A87D) !important;
+    border: 2px solid #FFF !important;
+    box-shadow: 0 4px 12px rgba(6, 214, 160, 0.3) !important;
+}
+
 .magic-btn {
     background: linear-gradient(135deg, #FFD166, #FFB703) !important;
     border: 2px solid #FFF !important;
     box-shadow: 0 4px 12px rgba(251, 133, 0, 0.25) !important;
 }
 
-/* Chest Modal Dialog */
+.btn-parents-link {
+    background: transparent;
+    border: none;
+    color: #8D5B4C;
+    font-size: 0.95rem;
+    font-weight: 700;
+    cursor: pointer;
+    padding: 8px 12px;
+    margin-top: 4px;
+    opacity: 0.85;
+    transition: opacity 0.2s;
+}
+
+.btn-parents-link:hover {
+    opacity: 1;
+    text-decoration: underline;
+}
+
+/* ==========================================================================
+   Cofre Mágico Integrado en el Paisaje (Storybook World View)
+   ========================================================================== */
+
+#magic-chest-modal {
+    background: rgba(38, 70, 83, 0.08) !important;
+    backdrop-filter: blur(1.5px) !important;
+    -webkit-backdrop-filter: blur(1.5px) !important;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    z-index: 1200;
+}
+
+#magic-chest-modal.active {
+    display: flex;
+}
+
+/* Enchanted Toy Chest in the Hills */
 .chest-card {
-    max-width: 540px;
-    width: 92%;
-    background: #FFFDF9;
-    border-radius: 28px;
-    padding: 24px;
-    box-shadow: 0 20px 50px rgba(43, 45, 66, 0.22);
-    border: 4px solid #FFE8D6;
+    max-width: 520px;
+    width: 95%;
+    background: linear-gradient(180deg, #FFFFFF 0%, #FFFDF5 60%, #FFF5E4 100%);
+    border-radius: 36px;
+    padding: 24px 22px 20px;
+    box-shadow: 0 16px 0 #D48C5B, 0 25px 50px rgba(0, 0, 0, 0.2);
+    border: 5px solid #F4A261;
+    position: relative;
     display: flex;
     flex-direction: column;
     align-items: stretch;
+    animation: chestPopIn 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes chestPopIn {
+    0% { transform: scale(0.85) translateY(30px); opacity: 0; }
+    100% { transform: scale(1) translateY(0); opacity: 1; }
+}
+
+@keyframes chestCardFloat {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-7px); }
 }
 
 .chest-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 16px;
+    margin-bottom: 12px;
+    padding: 0 4px;
 }
 
 .chest-theme-badge {
-    background: #FFE5D9;
+    background: linear-gradient(135deg, #FFE5D9, #FFD8CC);
     color: #D06A4C;
-    padding: 8px 16px;
+    padding: 8px 18px;
     border-radius: 20px;
     font-weight: 700;
-    font-size: 1rem;
+    font-size: 1.05rem;
     display: flex;
     align-items: center;
     gap: 8px;
+    box-shadow: 0 2px 6px rgba(208, 106, 76, 0.15);
 }
 
 .chest-counter {
-    background: #E8ECEF;
+    background: #FFFFFF;
     color: #495057;
     padding: 6px 14px;
     border-radius: 16px;
     font-weight: 700;
     font-size: 0.95rem;
+    border: 2px solid #E8ECEF;
 }
 
 /* 3D Flip Card Container */
@@ -1129,7 +1187,7 @@ html, body {
     display: flex;
     justify-content: center;
     align-items: center;
-    margin: 12px 0 20px;
+    margin: 10px 0 18px;
     min-height: 290px;
 }
 
@@ -1141,11 +1199,13 @@ html, body {
     transform-style: preserve-3d;
     transition: transform 0.65s cubic-bezier(0.34, 1.56, 0.64, 1);
     cursor: pointer;
+    animation: chestCardFloat 3.5s ease-in-out infinite;
     -webkit-tap-highlight-color: transparent;
 }
 
 .flashcard-3d.flipped {
     transform: rotateY(180deg);
+    animation: none;
 }
 
 .card-face {

@@ -11,28 +11,28 @@ const ACTIVE_CURRICULUM = {
             name: "Mi Familia",
             icon: "👨‍👩‍👧",
             themeClass: "theme-family",
-            words: ["Mamá", "Papá", "Emma", "bebé", "amigos"]
+            words: ["Mamá", "Papá", "Emma", "bebé", "tetero"]
         },
         {
             id: "mascotas",
             name: "Mis Mascotas",
             icon: "🐾",
             themeClass: "theme-pets",
-            words: ["perro", "gato", "conejo", "pollito", "gallo"]
+            words: ["perro", "gato", "conejo", "pollito", "pato"]
         },
         {
             id: "frutas",
             name: "Frutas y Meriendas",
             icon: "🍓",
             themeClass: "theme-food",
-            words: ["manzana", "fresa", "plátano", "uvas", "galleta", "helado"]
+            words: ["manzana", "fresa", "plátano", "uvas", "sandía", "helado"]
         },
         {
             id: "comida_mesa",
             name: "Rico en la Mesa",
             icon: "🥛",
             themeClass: "theme-food",
-            words: ["pan", "leche", "huevo", "yogur", "brócoli"]
+            words: ["pan", "leche", "huevo", "galleta", "brócoli"]
         },
         {
             id: "vehiculos",
@@ -53,14 +53,14 @@ const ACTIVE_CURRICULUM = {
             name: "El Sol y el Parque",
             icon: "🌸",
             themeClass: "theme-nature",
-            words: ["sol", "flor", "bote", "jardín"]
+            words: ["sol", "flor", "bote", "mariposa", "arcoíris"]
         },
         {
             id: "animales",
             name: "Animales Asombrosos",
             icon: "🦁",
             themeClass: "theme-animals",
-            words: ["jirafa", "tigre", "caracol", "lobo"]
+            words: ["león", "elefante", "mono", "jirafa", "pez"]
         },
         {
             id: "casa",
@@ -74,7 +74,7 @@ const ACTIVE_CURRICULUM = {
             name: "Mis Rutinas Diarias",
             icon: "⭐",
             themeClass: "theme-body",
-            words: ["comer", "dormir", "cepillar", "vestir", "barrer"]
+            words: ["comer", "dormir", "cepillar", "vestir", "libros"]
         }
     ],
     // Backwards compatibility dictionary
