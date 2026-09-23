@@ -2,8 +2,9 @@
   "name": "juego",
   "version": "1.0.0",
   "description": "Un juego educativo interactivo diseñado especialmente para niños de 2 años. El objetivo es ayudar a los pequeños a aprender palabras mediante la asociación con imágenes usando la técnica de arrastrar y soltar.",
-  "main": "editor.js",
+  "main": "server.js",
   "scripts": {
+    "start": "node server.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
@@ -12,6 +13,7 @@
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
     "dotenv": "^17.2.3",
+    "express": "^5.2.1",
     "jest": "^30.2.0",
     "jimp": "^1.6.0",
     "sharp": "^0.34.5"

@@ -1,0 +1,6 @@
+.gcloudignore
+.git
+.gitignore
+node_modules/
+images/elements_backup/
+*.log
