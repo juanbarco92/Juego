@@ -53,6 +53,7 @@ const paintWordDisplay = document.getElementById('paint-word-display');
 const paintAudioBtn = document.getElementById('paint-audio-btn');
 const paintWordsSelector = document.getElementById('paint-words-selector');
 const paintDoneBtn = document.getElementById('paint-done-btn');
+const paintGuideCanvas = document.getElementById('paint-guide-canvas');
 const paintCanvas = document.getElementById('paint-canvas');
 const paintCanvasContainer = document.getElementById('paint-canvas-container');
 const paintToolEraser = document.getElementById('paint-tool-eraser');
@@ -884,8 +885,23 @@ function onLevelComplete(data) {
     levelCompleteBanner.classList.add('active');
     setTimeout(() => {
         levelCompleteBanner.classList.remove('active');
-        // Open Recess Modal so Emma can choose to Paint, Play Bubbles, or Go to Next Level!
-        openRecessModal(data.words || [], true);
+
+        // Check if Emma reached a pedagogical milestone for Recess:
+        // Every 4 levels completed, offer the reward minigames!
+        const completedCount = (data && data.totalCompleted) 
+            || (gameEngine && gameEngine.levelsCompletedThisSession) 
+            || 1;
+        const isRecessMilestone = (completedCount > 0 && completedCount % 4 === 0);
+
+        if (isRecessMilestone) {
+            // Milestone reached: give Emma a well-earned reward recess!
+            openRecessModal(data.words || [], true);
+        } else {
+            // Smooth, continuous reading flow: advance directly to next level!
+            if (gameEngine) {
+                gameEngine.loadNextLevel();
+            }
+        }
     }, 1800);
 }
 
@@ -1456,11 +1472,11 @@ function openRecessModal(words = null, isLevelComplete = false) {
     }
 
     if (recessModalTitle) {
-        recessModalTitle.textContent = isLevelComplete ? '¡Lo lograste, Emma! 🎉' : '¡Tiempo de Recreo! 🎈';
+        recessModalTitle.textContent = isLevelComplete ? '¡Premio de Recreo, Emma! 🎈⭐' : '¡Tiempo de Recreo! 🎈';
     }
     if (recessModalDesc) {
         recessModalDesc.textContent = isLevelComplete 
-            ? '¡Completaste este nivel con éxito! ¿Qué te gustaría hacer ahora?'
+            ? '¡Completaste una gran ronda de lectura! Te has ganado un descanso divertido para pintar o jugar burbujas.'
             : 'Tómate un descanso divertido y sigue aprendiendo a leer.';
     }
 
@@ -1514,11 +1530,12 @@ async function proceedToNextLevelFromRecess() {
 }
 
 // ----------------------------------------------------------------------------
-// MINI-JUEGO 1: PINTAR LA PALABRA MÁGICA
+// MINI-JUEGO 1: PLANILLA DE TRAZO Y CALIGRAFÍA (LÁPIZ INFANTIL)
 // ----------------------------------------------------------------------------
 let currentPaintWord = 'Mamá';
 let paintBrushColor = '#EF4444';
-let paintBrushSize = 28;
+let paintBrushSize = 7; // Calibrado fino por defecto (Lápiz) para seguir trazos con precisión
+let paintIsEraser = false;
 let paintIsRainbow = false;
 let paintRainbowHue = 0;
 let paintIsDrawing = false;
@@ -1537,7 +1554,7 @@ function openPaintStage(wordToPaint = null) {
         currentPaintWord = 'Mamá';
     }
 
-    // Render word selector pills
+    // Render word selector pills en minúsculas
     renderPaintWordPills();
 
     // Setup canvas
@@ -1570,20 +1587,22 @@ function renderPaintWordPills() {
 
     wordsToShow.forEach(word => {
         const pill = document.createElement('button');
-        pill.className = `paint-word-pill ${word.toLowerCase() === currentPaintWord.toLowerCase() ? 'active' : ''}`;
-        pill.textContent = word;
+        const isCurrent = word.toLowerCase() === currentPaintWord.toLowerCase();
+        pill.className = `paint-word-pill ${isCurrent ? 'active' : ''}`;
+        pill.textContent = word.toLowerCase();
         pill.addEventListener('click', () => {
             if (audioService) audioService.playPop();
             currentPaintWord = word;
             renderPaintWordPills();
-            renderPaintTemplate(currentPaintWord);
+            clearPaintDrawingCanvas();
+            renderPaintWorksheet(currentPaintWord);
             if (audioService) audioService.speakWord(currentPaintWord);
         });
         paintWordsSelector.appendChild(pill);
     });
 
     if (paintWordDisplay) {
-        paintWordDisplay.textContent = currentPaintWord.toUpperCase();
+        paintWordDisplay.textContent = currentPaintWord.toLowerCase();
     }
 }
 
@@ -1593,67 +1612,155 @@ function setupPaintCanvas() {
     const rect = paintCanvasContainer.getBoundingClientRect();
     const dpr = window.devicePixelRatio || 1;
 
+    // 1. Configurar lienzo guía de la planilla (Capa inferior inmutable)
+    if (paintGuideCanvas) {
+        paintGuideCanvas.width = rect.width * dpr;
+        paintGuideCanvas.height = rect.height * dpr;
+        const gCtx = paintGuideCanvas.getContext('2d');
+        gCtx.scale(dpr, dpr);
+    }
+
+    // 2. Configurar lienzo de trazo del niño (Capa superior transparente)
     paintCanvas.width = rect.width * dpr;
     paintCanvas.height = rect.height * dpr;
 
     const ctx = paintCanvas.getContext('2d');
     ctx.scale(dpr, dpr);
 
-    renderPaintTemplate(currentPaintWord);
+    clearPaintDrawingCanvas();
+    renderPaintWorksheet(currentPaintWord);
     setupPaintTouchHandlers();
 }
 
-function renderPaintTemplate(word) {
-    if (!paintCanvas || !paintCanvasContainer) return;
-    const ctx = paintCanvas.getContext('2d');
+/**
+ * Dibuja la planilla de caligrafía escolar con renglones y letra punteada
+ * Siempre en minúsculas pedagógicas
+ */
+function renderPaintWorksheet(word) {
+    if (!paintGuideCanvas || !paintCanvasContainer) return;
+    const ctx = paintGuideCanvas.getContext('2d');
     const rect = paintCanvasContainer.getBoundingClientRect();
     const w = rect.width;
     const h = rect.height;
 
-    // Clean background
+    // Fondo blanco suave de hoja de libreta
+    ctx.clearRect(0, 0, w, h);
     ctx.fillStyle = '#FFFFFF';
     ctx.fillRect(0, 0, w, h);
 
-    // Optional sticker watermark
+    // Margen escolar izquierdo
+    ctx.save();
+    ctx.strokeStyle = '#FDE68A';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(34, 0);
+    ctx.lineTo(34, h);
+    ctx.stroke();
+
+    // Título sutil de la planilla
+    ctx.font = "600 15px 'Quicksand', sans-serif";
+    ctx.fillStyle = "#94A3B8";
+    ctx.textAlign = "left";
+    ctx.textBaseline = "top";
+    ctx.fillText("📝 Planilla de Trazo Escolar", 48, 16);
+    ctx.restore();
+
+    // Renglones de caligrafía infantil (tipo Montessori / primaria)
+    const displayWord = word.toLowerCase();
+    const fontSize = Math.min((w - 180) / (displayWord.length * 0.70), h * 0.35, 120);
+    const cx = (w - 100) * 0.42 + 40;
+    const cy = h * 0.54;
+
+    const baseLineY = cy + fontSize * 0.30;
+    const midLineY = cy - fontSize * 0.12;
+    const topLineY = cy - fontSize * 0.48;
+    const descenderLineY = cy + fontSize * 0.65;
+
+    ctx.save();
+    // Línea superior de alturas (letras altas: l, t, b, d)
+    ctx.strokeStyle = 'rgba(203, 213, 225, 0.45)';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(42, topLineY);
+    ctx.lineTo(w - 30, topLineY);
+    ctx.stroke();
+
+    // Línea media punteada (letras bajas: a, m, e, o, c, r...)
+    ctx.strokeStyle = 'rgba(148, 163, 184, 0.65)';
+    ctx.setLineDash([7, 7]);
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(42, midLineY);
+    ctx.lineTo(w - 30, midLineY);
+    ctx.stroke();
+
+    // Renglón base sólido (donde se apoyan las letras)
+    ctx.setLineDash([]);
+    ctx.strokeStyle = 'rgba(148, 163, 184, 0.85)';
+    ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    ctx.moveTo(42, baseLineY);
+    ctx.lineTo(w - 30, baseLineY);
+    ctx.stroke();
+
+    // Línea inferior de descenso (p, q, g, j, y)
+    ctx.strokeStyle = 'rgba(203, 213, 225, 0.35)';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(42, descenderLineY);
+    ctx.lineTo(w - 30, descenderLineY);
+    ctx.stroke();
+    ctx.restore();
+
+    // Imagen en marca de agua suave al lado derecho
     const assetUrl = (typeof AssetProvider !== 'undefined') ? AssetProvider.getAsset(word) : null;
     if (assetUrl) {
         const img = new Image();
         img.onload = () => {
             ctx.save();
             ctx.globalAlpha = 0.28;
-            const imgSize = Math.min(w, h) * 0.45;
-            ctx.drawImage(img, w - imgSize - 20, (h - imgSize) / 2, imgSize, imgSize);
+            const imgSize = Math.min(w * 0.28, h * 0.45, 140);
+            ctx.drawImage(img, w - imgSize - 25, (h - imgSize) / 2, imgSize, imgSize);
             ctx.restore();
-            drawWordOutlineText(ctx, word, w, h);
+            drawDottedWordGuide(ctx, displayWord, cx, cy, fontSize);
         };
         img.src = assetUrl;
     } else {
-        drawWordOutlineText(ctx, word, w, h);
+        drawDottedWordGuide(ctx, displayWord, cx, cy, fontSize);
     }
 }
 
-function drawWordOutlineText(ctx, word, w, h) {
+function drawDottedWordGuide(ctx, word, cx, cy, fontSize) {
     ctx.save();
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
+    ctx.font = `700 ${fontSize}px 'Fredoka', 'Quicksand', cursive, sans-serif`;
 
-    // Responsive font size
-    const fontSize = Math.min(w / (word.length * 0.75), h * 0.32, 110);
-    ctx.font = `900 ${fontSize}px 'Fredoka', cursive, sans-serif`;
+    // Capa de fondo muy suave para dar silueta
+    ctx.fillStyle = 'rgba(241, 245, 249, 0.9)';
+    ctx.fillText(word, cx, cy);
 
-    const cx = w * 0.45;
-    const cy = h / 2;
-
-    // Soft colored background fill
-    ctx.fillStyle = 'rgba(241, 245, 249, 0.85)';
-    ctx.fillText(word.toUpperCase(), cx, cy);
-
-    // Dotted tracing contour
-    ctx.strokeStyle = '#94A3B8';
-    ctx.lineWidth = 5;
-    ctx.setLineDash([10, 8]);
+    // Contorno punteado claro para que Emma siga con el lápiz
+    ctx.strokeStyle = '#64748B';
+    ctx.lineWidth = 3.5;
+    ctx.setLineDash([8, 8]);
     ctx.lineJoin = 'round';
-    ctx.strokeText(word.toUpperCase(), cx, cy);
+    ctx.lineCap = 'round';
+    ctx.strokeText(word, cx, cy);
+
+    // Pequeño indicador verde de inicio de trazo (start dot)
+    const textMetrics = ctx.measureText(word);
+    const startX = cx - (textMetrics.width / 2) + (fontSize * 0.12);
+    const startY = cy - (fontSize * 0.32);
+
+    ctx.setLineDash([]);
+    ctx.fillStyle = '#10B981';
+    ctx.beginPath();
+    ctx.arc(startX, startY, 5.5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = '#FFFFFF';
+    ctx.lineWidth = 2;
+    ctx.stroke();
 
     ctx.restore();
 }
@@ -1676,9 +1783,17 @@ function setupPaintTouchHandlers() {
 
         const ctx = paintCanvas.getContext('2d');
         ctx.beginPath();
-        ctx.arc(coords.x, coords.y, paintBrushSize / 2, 0, Math.PI * 2);
-        ctx.fillStyle = getActiveBrushColor();
-        ctx.fill();
+        if (paintIsEraser) {
+            // Borrador no destructivo: solo elimina los trazos de la capa superior
+            ctx.globalCompositeOperation = 'destination-out';
+            ctx.arc(coords.x, coords.y, 14, 0, Math.PI * 2);
+            ctx.fill();
+        } else {
+            ctx.globalCompositeOperation = 'source-over';
+            ctx.arc(coords.x, coords.y, paintBrushSize / 2, 0, Math.PI * 2);
+            ctx.fillStyle = getActiveBrushColor();
+            ctx.fill();
+        }
     };
 
     paintCanvas.onpointermove = (e) => {
@@ -1691,8 +1806,17 @@ function setupPaintTouchHandlers() {
         ctx.beginPath();
         ctx.moveTo(paintLastX, paintLastY);
         ctx.lineTo(coords.x, coords.y);
-        ctx.strokeStyle = getActiveBrushColor();
-        ctx.lineWidth = paintBrushSize;
+
+        if (paintIsEraser) {
+            // Borrado limpio sobre la capa superior
+            ctx.globalCompositeOperation = 'destination-out';
+            ctx.lineWidth = 28;
+        } else {
+            ctx.globalCompositeOperation = 'source-over';
+            ctx.strokeStyle = getActiveBrushColor();
+            ctx.lineWidth = paintBrushSize;
+        }
+
         ctx.lineCap = 'round';
         ctx.lineJoin = 'round';
         ctx.stroke();
@@ -1700,7 +1824,7 @@ function setupPaintTouchHandlers() {
         paintLastX = coords.x;
         paintLastY = coords.y;
 
-        if (paintIsRainbow) {
+        if (paintIsRainbow && !paintIsEraser) {
             paintRainbowHue = (paintRainbowHue + 5) % 360;
         }
     };
@@ -1724,12 +1848,23 @@ function getActiveBrushColor() {
 }
 
 function setupPaintToolListeners() {
-    // Color buttons
+    // Botones de color
     const colorBtns = document.querySelectorAll('.paint-color-btn');
     colorBtns.forEach(btn => {
         btn.addEventListener('click', () => {
             colorBtns.forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
+
+            // Salir de modo borrador al elegir un color
+            paintIsEraser = false;
+            if (paintToolEraser) paintToolEraser.classList.remove('active');
+
+            // Restablecer botón de tamaño activo si no lo está
+            const activeSizeBtn = document.querySelector('.paint-tools-palette .paint-tool-btn.active:not(#paint-tool-eraser)');
+            if (!activeSizeBtn) {
+                const smBtn = document.getElementById('paint-size-sm');
+                if (smBtn) smBtn.classList.add('active');
+            }
 
             const color = btn.dataset.color;
             if (color === 'rainbow') {
@@ -1742,11 +1877,11 @@ function setupPaintToolListeners() {
         });
     });
 
-    // Brush size buttons
+    // Botones de tamaño de trazo
     const sizeBtns = [
-        { id: 'paint-size-sm', size: 12 },
-        { id: 'paint-size-md', size: 28 },
-        { id: 'paint-size-lg', size: 54 }
+        { id: 'paint-size-sm', size: 7 },   // ✏️ Lápiz (fino y preciso)
+        { id: 'paint-size-md', size: 14 },  // 🖌️ Pincel (medio)
+        { id: 'paint-size-lg', size: 26 }   // 🖍️ Crayón (grueso)
     ];
     sizeBtns.forEach(item => {
         const btn = document.getElementById(item.id);
@@ -1754,26 +1889,46 @@ function setupPaintToolListeners() {
             btn.addEventListener('click', () => {
                 document.querySelectorAll('.paint-tools-palette .paint-tool-btn:not(#paint-tool-eraser):not(#paint-tool-clear)').forEach(b => b.classList.remove('active'));
                 btn.classList.add('active');
+
+                // Salir de modo borrador
+                paintIsEraser = false;
+                if (paintToolEraser) paintToolEraser.classList.remove('active');
+
                 paintBrushSize = item.size;
                 if (audioService) audioService.playPop();
             });
         }
     });
 
-    // Eraser button
+    // Botón de Borrador no destructivo
     if (paintToolEraser) {
         paintToolEraser.addEventListener('click', () => {
             document.querySelectorAll('.paint-color-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.paint-tools-palette .paint-tool-btn:not(#paint-tool-eraser):not(#paint-tool-clear)').forEach(b => b.classList.remove('active'));
+            paintToolEraser.classList.add('active');
+
+            paintIsEraser = true;
             paintIsRainbow = false;
-            paintBrushColor = '#FFFFFF';
             if (audioService) audioService.playPop();
         });
     }
+
+    // Botón de Limpiar trazos
+    if (paintToolClear) {
+        paintToolClear.addEventListener('click', clearPaintCanvas);
+    }
+}
+
+function clearPaintDrawingCanvas() {
+    if (!paintCanvas || !paintCanvasContainer) return;
+    const rect = paintCanvasContainer.getBoundingClientRect();
+    const ctx = paintCanvas.getContext('2d');
+    ctx.clearRect(0, 0, rect.width, rect.height);
 }
 
 function clearPaintCanvas() {
     if (audioService) audioService.playGentleBounce();
-    renderPaintTemplate(currentPaintWord);
+    clearPaintDrawingCanvas();
 }
 
 function finishPaintDrawing() {
@@ -1782,14 +1937,14 @@ function finishPaintDrawing() {
         audioService.speakPraise(currentPaintWord);
     }
 
-    // Increase star count as reward for creative activity!
+    // Incrementar estrellas ganadas
     totalStarsCollected++;
     if (starCount) starCount.textContent = totalStarsCollected;
 
-    // Friendly celebration toast
+    // Toast festivo de felicitación con la palabra en minúsculas
     if (restartToast) {
         if (restartToastText) {
-            restartToastText.textContent = `¡Qué dibujo tan hermoso de ${currentPaintWord}! 🎨⭐`;
+            restartToastText.textContent = `¡Qué trazo tan hermoso de ${currentPaintWord.toLowerCase()}! ✏️⭐`;
         }
         restartToast.classList.add('active');
         setTimeout(() => restartToast.classList.remove('active'), 2500);
@@ -1812,6 +1967,9 @@ function openBubblesStage() {
 function closeBubblesStage() {
     if (audioService) audioService.playPop();
     stopBubblesSpawner();
+    if (bubblesArena) {
+        bubblesArena.querySelectorAll('.bubble-wrapper, .floating-bubble').forEach(b => b.remove());
+    }
     if (bubblesStage) bubblesStage.classList.remove('active');
     if (bubblesWinOverlay) bubblesWinOverlay.classList.remove('active');
 }
@@ -1825,9 +1983,15 @@ function pickNextBubbleTarget() {
         ? currentRecessWords
         : ['Mamá', 'Papá', 'Sol', 'Pan', 'Emma'];
 
-    // Pick a target word
-    const randomIdx = Math.floor(Math.random() * wordsPool.length);
-    bubblesTarget = wordsPool[randomIdx];
+    // Pick a target word different from the previous one if possible
+    let target = wordsPool[Math.floor(Math.random() * wordsPool.length)];
+    if (wordsPool.length > 1 && target.toLowerCase() === bubblesTarget.toLowerCase()) {
+        const others = wordsPool.filter(w => w.toLowerCase() !== bubblesTarget.toLowerCase());
+        if (others.length > 0) {
+            target = others[Math.floor(Math.random() * others.length)];
+        }
+    }
+    bubblesTarget = target;
 
     if (bubblesTargetWord) {
         bubblesTargetWord.textContent = bubblesTarget.toUpperCase();
@@ -1843,7 +2007,7 @@ function pickNextBubbleTarget() {
 
     // Clear old bubbles in arena
     if (bubblesArena) {
-        bubblesArena.querySelectorAll('.floating-bubble').forEach(b => b.remove());
+        bubblesArena.querySelectorAll('.bubble-wrapper, .floating-bubble').forEach(b => b.remove());
     }
 
     // Start spawner
@@ -1856,10 +2020,10 @@ function startBubblesSpawner(wordsPool) {
     // Spawn first bubble immediately
     spawnOneBubble(wordsPool);
 
-    // And periodically every 1.5s
+    // And periodically every 1.6s
     bubblesSpawnerTimer = setInterval(() => {
         spawnOneBubble(wordsPool);
-    }, 1500);
+    }, 1600);
 }
 
 function stopBubblesSpawner() {
@@ -1873,7 +2037,7 @@ function spawnOneBubble(wordsPool) {
     if (!bubblesArena || !bubblesStage.classList.contains('active')) return;
 
     const arenaRect = bubblesArena.getBoundingClientRect();
-    if (arenaRect.width <= 0) return;
+    if (arenaRect.width <= 0 || arenaRect.height <= 0) return;
 
     // 45% chance of being target word, 55% distractor
     const isTarget = Math.random() < 0.45;
@@ -1885,51 +2049,67 @@ function spawnOneBubble(wordsPool) {
             : 'Sol';
     }
 
+    const wrapper = document.createElement('div');
+    wrapper.className = 'bubble-wrapper';
+    wrapper.dataset.word = word.toLowerCase();
+
     const bubble = document.createElement('div');
     bubble.className = 'floating-bubble';
-    bubble.dataset.word = word.toLowerCase();
 
     const wordSpan = document.createElement('span');
     wordSpan.className = 'bubble-word-text';
     wordSpan.textContent = word.toLowerCase();
     bubble.appendChild(wordSpan);
+    wrapper.appendChild(bubble);
 
-    const bubbleWidth = Math.min(130, arenaRect.width * 0.28);
+    // Responsive bubble size for iPad/mobile
+    const bubbleSize = Math.min(135, Math.max(105, Math.floor(arenaRect.width * 0.26)));
+    bubble.style.width = `${bubbleSize}px`;
+    bubble.style.height = `${bubbleSize}px`;
+
     const minX = 16;
-    const maxX = Math.max(16, arenaRect.width - bubbleWidth - 16);
+    const maxX = Math.max(16, arenaRect.width - bubbleSize - 16);
     const randomX = Math.floor(Math.random() * (maxX - minX + 1)) + minX;
-    const duration = (Math.random() * 3 + 7).toFixed(1); // 7s - 10s
+    const duration = (Math.random() * 2.5 + 6.5).toFixed(1); // 6.5s - 9.0s
 
-    bubble.style.left = `${randomX}px`;
-    bubble.style.bottom = `-140px`;
-    bubble.style.transition = `transform ${duration}s linear, opacity 0.3s ease`;
+    wrapper.style.left = `${randomX}px`;
+    wrapper.style.transform = 'translateY(0px)';
 
-    bubblesArena.appendChild(bubble);
+    bubblesArena.appendChild(wrapper);
 
-    // Trigger float animation via requestAnimationFrame
-    requestAnimationFrame(() => {
-        bubble.style.transform = `translateY(-${arenaRect.height + 260}px)`;
-    });
+    // Force layout reflow so the initial position is registered
+    wrapper.getBoundingClientRect();
+
+    // Trigger smooth GPU vertical float
+    wrapper.style.transition = `transform ${duration}s linear, opacity 0.3s ease`;
+    wrapper.style.transform = `translateY(-${arenaRect.height + 260}px)`;
 
     // Tap/Pointer listener
-    bubble.addEventListener('pointerdown', (e) => {
+    wrapper.addEventListener('pointerdown', (e) => {
+        e.preventDefault();
         e.stopPropagation();
-        handleBubbleTap(bubble, word);
+        handleBubbleTap(wrapper, bubble, word);
     });
 
     // Remove when out of screen
     setTimeout(() => {
-        if (bubble.parentElement) bubble.remove();
+        if (wrapper.parentElement) wrapper.remove();
     }, duration * 1000 + 400);
 }
 
-function handleBubbleTap(bubble, word) {
+function handleBubbleTap(wrapper, bubble, word) {
     if (bubble.classList.contains('popping')) return;
 
     const isMatch = word.toLowerCase() === bubblesTarget.toLowerCase();
 
     if (isMatch) {
         bubble.classList.add('popping');
+
+        // Freeze vertical movement cleanly in place during the pop burst
+        const computedStyle = window.getComputedStyle(wrapper);
+        wrapper.style.transform = computedStyle.transform;
+        wrapper.style.transition = 'none';
+
         if (audioService) {
             audioService.playPop();
             audioService.speakPraise(word);
@@ -1940,7 +2120,9 @@ function handleBubbleTap(bubble, word) {
             bubblesScoreText.textContent = `${bubblesScore} / ${bubblesTargetScore}`;
         }
 
-        setTimeout(() => bubble.remove(), 300);
+        setTimeout(() => {
+            if (wrapper.parentElement) wrapper.remove();
+        }, 320);
 
         if (bubblesScore >= bubblesTargetScore) {
             // Level win!
@@ -1959,7 +2141,7 @@ function handleBubbleTap(bubble, word) {
             audioService.playGentleBounce();
             audioService.speakWord(word);
         }
-        setTimeout(() => bubble.classList.remove('wrong-bubble'), 600);
+        setTimeout(() => bubble.classList.remove('wrong-bubble'), 550);
     }
 }
 
@@ -1986,30 +2168,20 @@ if (forceUpdateBtn) {
     });
 }
 
-// Register Service Worker with proactive auto-refresh when updated
+// Register Service Worker with safe update handling
 if ('serviceWorker' in navigator) {
     let refreshing = false;
     navigator.serviceWorker.addEventListener('controllerchange', () => {
-        if (!refreshing) {
+        // Only auto-reload if no active child session is running, avoiding mid-game flickering
+        if (!refreshing && (!gameEngine || !gameEngine.sessionController || !gameEngine.sessionController.sessionActive)) {
             refreshing = true;
-            console.log('🔄 Nueva versión detectada, recargando aplicación...');
+            console.log('🔄 Nueva versión aplicada, actualizando...');
             window.location.reload();
         }
     });
 
     window.addEventListener('load', () => {
-        navigator.serviceWorker.register('sw.js?v=2.7').then((reg) => {
-            reg.update();
-            reg.addEventListener('updatefound', () => {
-                const newWorker = reg.installing;
-                if (newWorker) {
-                    newWorker.addEventListener('statechange', () => {
-                        if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                            newWorker.postMessage({ action: 'skipWaiting' });
-                        }
-                    });
-                }
-            });
+        navigator.serviceWorker.register('sw.js?v=2.9').then((reg) => {
             console.log('📦 Service Worker activo y verificado');
         }).catch((err) => {
             console.debug('Service Worker:', err);
